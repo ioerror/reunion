@@ -1,0 +1,6 @@
+sibc
+monocypher-py
+ifaddr
+click
+hkdf
+cryptography>=3.1.1
