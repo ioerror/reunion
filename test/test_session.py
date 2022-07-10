@@ -2,10 +2,6 @@ import os
 import unittest
 
 from reunion.session import ReunionSession, Hash, unelligator, generate_hidden_key_pair
-from reunion.primitives import (
-    generate_elligatorable_sk,
-    elligator,
-)
 from monocypher.public import PrivateKey
 
 
@@ -24,41 +20,6 @@ def get_pairs(items):
 class TestReunionSession(unittest.TestCase):
     def setUp(self):
         pass
-
-    def _test_elligator_old(self):
-        """
-        This test doesn't need to stay here, or, if it does, doesn't need to
-        generate 1000 keys at least. It exists presently to verify our
-        assumptions about how elligator works.
-
-        note: assumptions verified.
-        """
-
-        # sk = [PrivateKey.generate() for i in range(1000)] # fails for 50% of keys, hence:
-        sk = [PrivateKey(generate_elligatorable_sk()) for i in range(1000)]
-        pk = [s.public_key.encode() for s in sk]
-        e = [elligator(p, 1) for p in pk]
-        pk_ = [unelligator(ee) for ee in e]
-        res = [a == b for a, b in zip(pk, pk_)]
-        self.assertEqual(res.count(False), 0)
-
-        for p in pk:
-            e = [
-                elligator(p, i)
-                for i in (
-                    # bits 0, 6, and 7 are all that matters of the tweak
-                    a + b + c
-                    for a in (0, 2 ** 7)
-                    for b in (0, 2 ** 6)
-                    for c in (0, 1)
-                )
-            ]
-            # (this would produce the same result:)
-            #         e = [elligator(p, i) for i in range(256)]
-            self.assertTrue(all(p == unelligator(pe) for pe in e))
-            # there should be 8 elligator representations of each elligatorable
-            # public key
-            self.assertEqual(len(set(e)), 8)
 
     def _test_2party(self):
 
@@ -97,7 +58,7 @@ is fully determined not to quit until he finds it.""".encode()
         self.assertEqual(A_msg, A_msg_B)
         self.assertEqual(B_msg, B_msg_A)
 
-    def xtest_4party_interleaved(self):
+    def _4party_interleaved(self):
 
         """
         4 parties means 16 CSIDH operations (N**2, or, N key generations plus

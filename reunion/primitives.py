@@ -49,29 +49,11 @@ def aead_decrypt(key, msg, ad):
     return res
 
 
-def elligator(curve, tweak):
-    # DEPRECATED - generate_hidden_key_pair gives us the pubkey already elligator'd now
-    curve = ffi.from_buffer("uint8_t[32]", curve)
-    hidden = ffi.new("uint8_t[32]")
-    lib.crypto_curve_to_hidden(hidden, curve, tweak)
-    return bytes(hidden)
-
-
 def unelligator(hidden):
     hidden = ffi.from_buffer("uint8_t[32]", hidden)
     curve = ffi.new("uint8_t[32]")
     lib.crypto_hidden_to_curve(curve, hidden)
     return bytes(curve)
-
-
-def generate_elligatorable_sk():
-    # DEPRECATED - we now use generate_hidden_key_pair instead
-    while True:
-        sk = PrivateKey.generate()
-        pk = sk.public_key.encode()
-        if pk == unelligator(elligator(pk, 0)):
-            break
-    return sk.encode()
 
 
 def generate_hidden_key_pair(seed):

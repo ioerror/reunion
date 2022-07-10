@@ -24,7 +24,6 @@ from reunion.primitives import (
     Hkdf,
     prp_encrypt,
     prp_decrypt,
-    elligator,
     unelligator,
     generate_hidden_key_pair,
     Hash,
