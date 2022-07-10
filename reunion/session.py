@@ -284,7 +284,7 @@ class Peer(object):
             t3key_tx = Hash(peer.t2key_tx + peer.t2_tx + t2)
 
             # Step 29: T3kirx ← H(T2kirx, T2Bi, T2Ai)
-            self.t3_key_rx = Hash(peer.t2key_rx + peer.t2_rx + peer.t2_tx)
+            peer.t3_key_rx = Hash(peer.t2key_rx + peer.t2_rx + peer.t2_tx)
 
             # Step 30: T3Ai ← rijndael-enc(T3kitx, skAδ)
             return prp_encrypt(t3key_tx, peer.session.sk_delta), False
@@ -314,7 +314,7 @@ class Peer(object):
             return None
 
         # Step 37: skBiδ ← rijndael-dec(T3kirx, T3Bi).
-        sk_delta = prp_decrypt(self.t3_key_rx, t3)
+        sk_delta = prp_decrypt(peer.t3_key_rx, t3)
 
         # Step 38: if msgBi ← aead-dec(skBiδ, T1Biδ, RS) then
         peer.payload = aead_decrypt(sk_delta, peer.t1.delta, peer.session.salt)
