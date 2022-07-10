@@ -26,7 +26,7 @@ from reunion.primitives import (
     prp_decrypt,
     elligator,
     unelligator,
-    generate_elligatorable_sk,
+    generate_hidden_key_pair,
     Hash,
     blake2b,
 )
@@ -104,8 +104,10 @@ class ReunionSession(object):
         everything else in the ReunionSession and Peer classes (except "create"
         which calls this) can be sans IO.
         """
+        dh_epk, dh_sk = generate_hidden_key_pair(os.urandom(32))
         return dict(
-            dh_sk=generate_elligatorable_sk(),
+            dh_epk=dh_epk,
+            dh_sk=dh_sk,
             csidh_sk=csidh.secret_key(),
             gamma_seed=Hash(os.urandom(32)),
             delta_seed=Hash(os.urandom(32)),
@@ -130,6 +132,7 @@ class ReunionSession(object):
         salt: bytes,
         basekey: bytes,
         payload: bytes,
+        dh_epk: bytes,
         dh_sk: bytes,
         csidh_sk: bytes,
         gamma_seed: bytes,
@@ -145,7 +148,6 @@ class ReunionSession(object):
 
         # Step2a: esk Aα ∈ Z, public key epk Aα = esk Aα · P ∈ E(Fp).
         self.dh_sk: PrivateKey = PrivateKey(dh_sk)
-        dh_pk: PublicKey = self.dh_sk.public_key
 
         # Step2b: esk Aβ ∈ Z, public key epk Aβ = esk Aβ · P ∈ E(Fp)
         self.csidh_sk: bytes = csidh_sk
@@ -178,8 +180,8 @@ class ReunionSession(object):
         # Step 8: pdkA ← H(pdk, epkAβ , T1Aγ , T1Bδ )
         self.alpha_key = Hash(self.pdk + csidh_pk + gamma + delta)
 
-        # Step 9: T1Aα ← rijndael-enc(pdk A , elligator(epk Aα))
-        alpha = prp_encrypt(self.alpha_key, elligator(dh_pk.encode(), tweak))
+        # Step 9: T1Aα ← rijndael-enc(pdkA , epkAα)
+        alpha = prp_encrypt(self.alpha_key, dh_epk)
 
         # Step 10: T1A ← T1 Aα ∥ epkAβ ∥ T1 Aγ ∥ T1 Aδ
         self.t1 = T1(alpha + beta + gamma + delta)

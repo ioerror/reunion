@@ -1,11 +1,10 @@
+import os
 import unittest
 
-from reunion.session import (
-    ReunionSession,
-    Hash,
-    elligator,
-    unelligator,
+from reunion.session import ReunionSession, Hash, unelligator, generate_hidden_key_pair
+from reunion.primitives import (
     generate_elligatorable_sk,
+    elligator,
 )
 from monocypher.public import PrivateKey
 
@@ -26,7 +25,7 @@ class TestReunionSession(unittest.TestCase):
     def setUp(self):
         pass
 
-    def _test_elligator(self):
+    def _test_elligator_old(self):
         """
         This test doesn't need to stay here, or, if it does, doesn't need to
         generate 1000 keys at least. It exists presently to verify our
@@ -61,7 +60,7 @@ class TestReunionSession(unittest.TestCase):
             # public key
             self.assertEqual(len(set(e)), 8)
 
-    def test_2party(self):
+    def _test_2party(self):
 
         """
         This test is disabled because the test_4party tests a superset of its
