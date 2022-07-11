@@ -63,4 +63,13 @@ is the only user of this module.
   ReunionSession API does not require them to do so.
 
 ### Running the tests
+
+Either of these commands will run the test suite:
+
 * `pytest`
+* `python3 setup.py test`
+
+### Building a Debian package
+
+To generate a Debian package:
+* `python3 setup.py --command-packages=stdeb.command sdist_dsc bdist_deb`
