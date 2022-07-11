@@ -8,3 +8,4 @@ cryptography>=3.1.1
 # needed for the scripts in app/
 flask[async]
 stem
+requests
