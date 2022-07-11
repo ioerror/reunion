@@ -247,7 +247,7 @@ class Peer(object):
         dh_ss = x25519(session.dh_sk, dh_pk)
 
         # Step 19: dh2ssi ← H(DH(eskAβ , epkBiβ)).
-        csidh_ss = csidh.dh(session.csidh_sk, csidh_pk)
+        csidh_ss = csidh.dh(session.csidh_sk, csidh_pk) # note that this can throw exceptions, see app/reunion-client.py:process_t1(T1(t1))
 
         # Step 20: T2kitx ← H(pdkA, pdkBi, dh1ssi, dh2ssi)
         peer.t2key_tx = Hash(session.alpha_key + peer.alpha_key + dh_ss + csidh_ss)

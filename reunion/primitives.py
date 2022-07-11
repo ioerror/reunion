@@ -13,7 +13,11 @@ def Hash(msg):
 
 
 def x25519(sk, pk):
-    return Box(sk, pk).shared_key()
+    shared = Box(sk, pk).shared_key
+    if isinstance(shared, bytes):
+        # in recent versions of monocypher-ca, shared_key is a property:
+        return shared
+    return shared()
 
 
 def aead_encrypt(key, msg, ad):
@@ -70,13 +74,16 @@ def prp_encrypt(key, msg):
     # is two blocks of AES (128 bit block size) for now.
     cipher = Cipher(algorithms.AES(key), modes.ECB())
     encryptor = cipher.encryptor()
-    return encryptor.update(msg) + encryptor.finalize()
+    res = encryptor.update(msg) + encryptor.finalize()
+    assert len(res) == 32, len(res)
+    return res
 
 
 def prp_decrypt(key, ct):
     # 32-byte block cipher rijndael-dec(key, ciphertext),
     # note: should actually be rijandael with a 256 bit block size, but here it
     # is two blocks of AES (128 bit block size) for now.
+    assert len(ct) == 32, len(ct)
     cipher = Cipher(algorithms.AES(key), modes.ECB())
     decryptor = cipher.decryptor()
     return decryptor.update(ct) + decryptor.finalize()
