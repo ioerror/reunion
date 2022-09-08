@@ -3,7 +3,7 @@ name = "reunion"
 description = "reunion is for rendezvous"
 version = "1.0.0"
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools", "wheel", "toml"]
 build-backend = "setuptools.build_meta"
 [testenv]
 commands = ["pytest"]

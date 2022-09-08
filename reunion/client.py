@@ -18,6 +18,7 @@ import asyncio
 import datetime
 import json  # for the output
 import click # for the cli
+import socks
 
 import logging
 logger = logging.getLogger('reunion-client')
