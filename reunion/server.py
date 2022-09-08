@@ -83,7 +83,8 @@ async def serve_t3():
 
 
 
-def setup_tor(bind_ip):
+def setup_tor(bind_ip, private_onion_key=None):
+    logger.debug('[*] CONNECTING TO TOR CONTROLLER')
     from stem.control import Controller
     controller = Controller.from_port(address="127.0.0.1", port=9051)
     # after enabling ControlPort in torrc
@@ -93,17 +94,35 @@ def setup_tor(bind_ip):
     # also available from
     # grep shared-rnd-(previous|current)-value /var/lib/tor/cached-microdesc-consensus
 
-    print('current rnd', controller.get_info('sr/current'))
+    # can use https://stem.torproject.org/api/descriptor/collector.html
+    # to grab previous epoch microdescs:
+    logger.debug('current rnd: %s', controller.get_info('sr/current'))
     # 'Ujtd/Zqjx0OlO4xubf9MBoqS12nraI6TYzyJwiZzsqA='
-    print('previous rnd', controller.get_info('sr/previous'))
+    logger.debug('previous rnd: %s', controller.get_info('sr/previous'))
     # 'mdr2FK+N8Pgxqy7kKqcNXWZIiHP1981LlHczEIwFkrc='
 
-    hostname = self.controller.create_ephemeral_hidden_service(
-        {
-            1921: bind_ip + ':1921'
-        },
-        await_publication = True).service_id + '.onion'
-    print(hostname)
+    # XXX: should use add_event_listener() to detect SRV changes
+
+    hs_opts = {'key_type': 'NEW',
+               'key_content': 'ED25519-V3',
+               'detached': True,
+               }
+    if private_onion_key:
+        hs_opts['key_type'] = 'ED25519-V3'
+        hs_opts['key_content'] = private_onion_key
+
+        # Remove all existing ephemeral hidden services (not ideal,
+        # but required to avoid an exception when re-creating using
+        # private key below):
+        list(map(controller.remove_ephemeral_hidden_service,
+                 controller.list_ephemeral_hidden_services(detached=True)))
+
+    resp = controller.create_ephemeral_hidden_service(
+        {1234: f'{bind_ip}:1234',},
+        await_publication=False, **hs_opts)
+    logger.debug('private key %s', resp.private_key or private_onion_key)
+    hostname = resp.service_id + '.onion'
+    logger.warn('listening on %s', hostname)
 
 async def tcp_client_cb(reader, writer):
     global t1s
@@ -144,6 +163,7 @@ async def tcp_client_cb(reader, writer):
     logger.debug('goodbye to client %s %s', reader, writer)
 
 async def serve_tcp(bind_ip):
+    logger.debug('starting asyncio server')
     server = await asyncio.start_server(tcp_client_cb, host=bind_ip, port=1921,
                                reuse_address=True, reuse_port=True)
     while True:
@@ -151,7 +171,7 @@ async def serve_tcp(bind_ip):
     # async with server:
     #   await server.serve_forever()
 
-def launch(mode, verbose, bind):
+def launch(mode, verbose, bind, private_onion_key):
     global logger
     if 'http' == mode:
         if verbose:
@@ -162,8 +182,8 @@ def launch(mode, verbose, bind):
         if verbose:
             logger.setLevel(logging.DEBUG)
             logging.debug('for some reason this is needed to get logger to show debug/info wtf') # TODO
-        if 'tor' == 'mode':
-            setup_tor(bind)
+        if 'tor' == mode:
+            setup_tor(bind, private_onion_key)
         asyncio.run(serve_tcp(bind))
 
 @click.command()
@@ -175,7 +195,10 @@ def launch(mode, verbose, bind):
 @click.option("--mode", type=str, default='http',
               show_default=True,
               help='http/tcp/tor', ) # TODO this should be a choice somehow
+@click.option("--private-onion-key", type=str, default=None,
+              help='key for the onion service address')
 def main(**kw):
+    print('mode', kw['mode'])
     launch(**kw)
 
 if '__main__' == __name__:
