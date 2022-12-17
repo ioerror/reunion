@@ -77,7 +77,7 @@ setuptools.setup(
     package_data={},
     include_package_data=False,
     zip_safe=True,
-    tests_require=["pytest"],
+    tests_require=["pytest", "pytest-cov"],
     cmdclass=dict(
         bdist_deb=bdist_deb,
         man_pages=man_pages,

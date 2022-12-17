@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-
 # TODO: Tor stuff is not finished yet.
 # TODO: should probably persist messages to an on-disk thing to survive restarts
+
+from typing import Set
 
 HASH_LEN = 32 # output of primitives.Hash()
 MSG_LEN  = 96 # padded message size, would be nice if this could be given as a parameter to ReunionSession
@@ -20,9 +21,9 @@ logger = logging.getLogger('reunion-server')
 
 app = Flask(__name__)
 
-t1s = set()
-t2s = set()
-t3s = set()
+t1s : Set[bytes] = set()
+t2s : Set[bytes] = set()
+t3s : Set[bytes] = set()
 
 # @stream_with_context
 # def stream_list(lst):

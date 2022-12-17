@@ -23,10 +23,34 @@ import socks
 import logging
 logger = logging.getLogger('reunion-client')
 
-async def send_tcp(where, what, chunk_size):
+def through_socks_proxy(socks_addr, socks_port, target_addr, target_port,
+                        username=None, password=None):
+    s = socks.socksocket()
+    # set_proxy(proxy_type, addr[, port[, rdns[, username[, password]]]])
+    s.set_proxy(socks.SOCKS4, socks_addr, socks_port, rdns=True,
+                username=username, password=password)
+    print((target_addr, target_port))
+    s.connect((target_addr, target_port))
+    return asyncio.open_connection(socks=s)
+
+async def send_tor(where, what, chunk_size):
+    rw = await through_socks_proxy(
+        '127.0.0.1', 9050,
+        '62fkbxb2jqxnjvigkpihj32qoyv4ht576im3vi7oq7zbyf2tg7kwopyd.onion', 1921,
+        username='reunion',)
+    logger.debug('have a socks connection %s', rw)
+    async for x in send_tcp(where, what, chunk_size,
+                            reader_writer=rw):
+        logger.debug('yielded from send_tcp %s', x)
+        yield x
+
+async def send_tcp(where, what, chunk_size, reader_writer=None):
     '''chunk_size is used to group the results'''
     async def internal():
-        reader, writer = await asyncio.open_connection('127.0.0.2', '1921')
+        if not reader_writer:
+            reader_writer = await asyncio.open_connection('127.0.0.2', '1921')
+        else:
+            reader, writer = reader_writer
         logger.debug('got a connection %s', reader)
         writer.write(where[1].encode())
         for record in what:
@@ -75,13 +99,13 @@ async def store_result(result:bytes):
     except UnicodeDecodeError as e:
         logger.warn('result decode error: %s', e)
         # fallback to hex in case we can't decode it as unicode
-        dumpable_results.append(['hex', res.hex()])
+        dumpable = ['hex', result.hex()]
     print(json.dumps(dumpable))
 
-async def launch(passphrase, msg, mode, verbose, duration:int,
+async def launch(passphrase, msg, mode, verbose, duration_int:int,
                  mandatory_sleep=0.5, randomized_sleep=2):
     start_time = datetime.datetime.now()
-    duration = datetime.timedelta(seconds=duration)
+    duration = datetime.timedelta(seconds=duration_int)
 
     if verbose:
         logger.setLevel(logging.DEBUG)
@@ -91,6 +115,11 @@ async def launch(passphrase, msg, mode, verbose, duration:int,
         send = send_http
     elif 'tcp' == mode:
         send = send_tcp
+    elif 'tor' == mode:
+        send = send_tor
+    else:
+        raise Exception(f'invalid --mode {repr(mode)}')
+
     Me = ReunionSession.create(passphrase.encode(),
                                msg.encode()[:96].ljust(96) # TODO truncation?
                                # TODO pass in salt= epoch id here, e.g. tor shared random
