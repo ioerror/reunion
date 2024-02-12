@@ -1,8 +1,7 @@
 import os
 import unittest
 
-from reunion.session import ReunionSession, Hash, unelligator, generate_hidden_key_pair
-from monocypher.public import PrivateKey
+from reunion.session import ReunionSession
 
 
 def get_pairs(items):
@@ -21,8 +20,49 @@ class TestReunionSession(unittest.TestCase):
     def setUp(self):
         pass
 
-    def _test_2party(self):
+    def test_internals(self):
 
+        A_msg = "Mr. Watson — Come here — I want to see you.".encode()
+        B_msg = """\
+when a man gives his order to produce a definite result and stands by that
+order it seems to have the effect of giving him what might be termed a second
+sight which enables him to see right through ordinary problems. What this power
+is I cannot say; all I know is that it exists and it becomes available only
+when a man is in that state of mind in which he knows exactly what he wants and
+is fully determined not to quit until he finds it.""".encode()
+
+        passphrase = b"passphrase"
+
+        A = ReunionSession.create(passphrase, A_msg)
+        B = ReunionSession.create(passphrase, B_msg)
+
+        A_t2 = A.process_t1(B.t1)
+        B_t2 = B.process_t1(A.t1)
+
+        A_t3, is_dummy_A = A.process_t2(B.t1.id, B_t2)
+        B_t3, is_dummy_B = B.process_t2(A.t1.id, A_t2)
+
+        assert is_dummy_A == False
+        assert is_dummy_B == False
+
+        A.process_t3(B.t1.id, B_t3)
+        B.process_t3(A.t1.id, A_t3)
+
+        A_peer = list(A.peers.values())[0]
+        B_peer = list(B.peers.values())[0]
+        assert A_peer.csidh_ss == B_peer.csidh_ss
+        assert A_peer.dh_ss == B_peer.dh_ss
+        assert B_peer.alpha_key == A.alpha_key
+        assert B.salt == A.salt
+        assert B.pdk == A.pdk
+
+        A_msg_B = B.results[0]
+        B_msg_A = A.results[0]
+
+        self.assertEqual(A_msg, A_msg_B)
+        self.assertEqual(B_msg, B_msg_A)
+
+    def test_2party(self):
         """
         This test is disabled because the test_4party tests a superset of its
         functionality. It remains here as a demonstration of the simplest
@@ -46,11 +86,11 @@ is fully determined not to quit until he finds it.""".encode()
         A_t2 = A.process_t1(B.t1)
         B_t2 = B.process_t1(A.t1)
 
-        A_t3, is_dummy_A = A.process_t2(Hash(B.t1), B_t2)
-        B_t3, is_dummy_B = B.process_t2(Hash(A.t1), A_t2)
+        A_t3, is_dummy_A = A.process_t2(B.t1.id, B_t2)
+        B_t3, is_dummy_B = B.process_t2(A.t1.id, A_t2)
 
-        A.process_t3(Hash(B.t1), B_t3)
-        B.process_t3(Hash(A.t1), A_t3)
+        A.process_t3(B.t1.id, B_t3)
+        B.process_t3(A.t1.id, A_t3)
 
         A_msg_B = B.results[0]
         B_msg_A = A.results[0]
@@ -58,8 +98,7 @@ is fully determined not to quit until he finds it.""".encode()
         self.assertEqual(A_msg, A_msg_B)
         self.assertEqual(B_msg, B_msg_A)
 
-    def _4party_interleaved(self):
-
+    def test_4party_interleaved(self):
         """
         4 parties means 16 CSIDH operations (N**2, or, N key generations plus
         N*(N-1) rendezvouses with others) so this test takes a little while.
@@ -90,11 +129,11 @@ is fully determined not to quit until he finds it.""".encode()
             a_t2 = a.process_t1(b.t1)
             b_t2 = b.process_t1(a.t1)
 
-            a_t3, is_dummy_a = a.process_t2(Hash(b.t1), b_t2)
-            b_t3, is_dummy_b = b.process_t2(Hash(a.t1), a_t2)
+            a_t3, is_dummy_a = a.process_t2(b.t1.id, b_t2)
+            b_t3, is_dummy_b = b.process_t2(a.t1.id, a_t2)
 
-            a.process_t3(Hash(b.t1), b_t3)
-            b.process_t3(Hash(a.t1), a_t3)
+            a.process_t3(b.t1.id, b_t3)
+            b.process_t3(a.t1.id, a_t3)
 
         A_msg_B = B.results[0]
         B_msg_A = A.results[0]
@@ -108,7 +147,6 @@ is fully determined not to quit until he finds it.""".encode()
         self.assertTrue(all(len(r.results) == 1 for r in sessions))
 
     def test_4party(self):
-
         """
         4 parties means 16 CSIDH operations (N**2, or, N key generations plus
         N*(N-1) rendezvouses with others) so this test takes a little while.

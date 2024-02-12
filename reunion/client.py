@@ -7,8 +7,10 @@
 
 import reunion
 from reunion.primitives import Hash
+
 # TODO: Hash should have a property specifying byte length
 from reunion.session import ReunionSession, T1
+
 # process_t1: should probably case to T1()
 import requests
 import time

@@ -15,13 +15,12 @@ Algorithm 1 of the REUNION paper.
 
 from reunion.primitives import (
     x25519,
-    PrivateKey,
-    PublicKey,
-    csidh,
+    ctidh1024,
+    highctidh_deterministic_rng,
     aead_encrypt,
     aead_decrypt,
     argon2i,
-    Hkdf,
+    hkdf,
     prp_encrypt,
     prp_decrypt,
     unelligator,
@@ -53,7 +52,7 @@ class T1(bytes):
     """
 
     LEN_ALPHA = 32
-    LEN_BETA = 64
+    LEN_BETA = 128
     LEN_GAMMA = 16
 
     @property
@@ -103,11 +102,9 @@ class ReunionSession(object):
         everything else in the ReunionSession and Peer classes (except "create"
         which calls this) can be sans IO.
         """
-        dh_epk, dh_sk = generate_hidden_key_pair(os.urandom(32))
         return dict(
-            dh_epk=dh_epk,
-            dh_sk=dh_sk,
-            csidh_sk=csidh.secret_key(),
+            dh_seed=Hash(os.urandom(32)),
+            ctidh_seed=Hash(os.urandom(32)),
             gamma_seed=Hash(os.urandom(32)),
             delta_seed=Hash(os.urandom(32)),
             dummy_seed=Hash(os.urandom(32)),
@@ -122,18 +119,17 @@ class ReunionSession(object):
         return cls(
             payload=payload,
             salt=salt,
-            basekey=argon2i(passphrase, salt),
+            passphrase=passphrase,
             **cls.keygen(),
         )
 
     def __init__(
         self,
         salt: bytes,
-        basekey: bytes,
+        passphrase: bytes,
         payload: bytes,
-        dh_epk: bytes,
-        dh_sk: bytes,
-        csidh_sk: bytes,
+        dh_seed: bytes,
+        ctidh_seed: bytes,
         gamma_seed: bytes,
         delta_seed: bytes,
         dummy_seed: bytes,
@@ -145,12 +141,16 @@ class ReunionSession(object):
         # list of payloads decrypted
         self.results: List = []
 
+        self.dh_epk, dh_sk_bytes = generate_hidden_key_pair(dh_seed)
+
         # Step2a: esk Aα ∈ Z, public key epk Aα = esk Aα · P ∈ E(Fp).
-        self.dh_sk: PrivateKey = PrivateKey(dh_sk)
+        self.dh_sk: bytes = dh_sk_bytes
 
         # Step2b: esk Aβ ∈ Z, public key epk Aβ = esk Aβ · P ∈ E(Fp)
-        self.csidh_sk: bytes = csidh_sk
-        csidh_pk: bytes = csidh.public_key(csidh_sk)
+        rng = None
+        rng = highctidh_deterministic_rng(ctidh_seed)
+        self.csidh_sk = ctidh1024.generate_secret_key(rng=rng, context=1)  # fixme use seed
+        self.csidh_pk: bytes = ctidh1024.derive_public_key(self.csidh_sk)
 
         # Step 3: salt ← SharedRandom∥EpochID.
         # Setting the salt, or context, is the responsibility of the
@@ -158,7 +158,7 @@ class ReunionSession(object):
         self.salt = salt
 
         # Step 4: pdk ← HKDF(salt, argon2id(salt, Q)).
-        kdf = Hkdf(salt=salt, input_key_material=basekey, hash=blake2b)
+        kdf = hkdf(key=argon2i(passphrase, salt), salt=salt)
         self.pdk = kdf.expand(b"", 32)
 
         # Step 5a: sk Aγ ← H(pdk, RNG(32), msg A )
@@ -168,7 +168,7 @@ class ReunionSession(object):
         self.sk_delta = Hash(self.pdk + delta_seed + payload)
 
         # t1 beta is the unencrypted csidh pk
-        beta = csidh_pk
+        beta = self.csidh_pk
 
         # Step 6: T1Aγ ← aead-enc(sk Aγ ,“”, RS)
         gamma = aead_encrypt(self.sk_gamma, b"", salt)
@@ -177,16 +177,18 @@ class ReunionSession(object):
         delta = aead_encrypt(self.sk_delta, payload, salt)
 
         # Step 8: pdkA ← H(pdk, epkAβ , T1Aγ , T1Bδ )
-        self.alpha_key = Hash(self.pdk + csidh_pk + gamma + delta)
+        self.alpha_key = Hash(self.pdk + beta + gamma + delta)
 
         # Step 9: T1Aα ← rijndael-enc(pdkA , epkAα)
-        alpha = prp_encrypt(self.alpha_key, dh_epk)
+        alpha = prp_encrypt(self.alpha_key, self.dh_epk)
 
         # Step 10: T1A ← T1 Aα ∥ epkAβ ∥ T1 Aγ ∥ T1 Aδ
         self.t1 = T1(alpha + beta + gamma + delta)
 
         # deviation from the paper - we generate dummys derministically using this Hkdf.
-        self.dummy_hkdf = Hkdf(salt=salt, input_key_material=dummy_seed, hash=blake2b)
+        self.dummy_hkdf = hkdf(key=dummy_seed, salt=salt)
+        # FIXME: why dummy_hkdf? doesn't it run out after a small number of values?
+        # was this just for testing purposes?
 
     # steps 11, 12, and 13 happen in the application using this library
 
@@ -238,22 +240,28 @@ class Peer(object):
         peer.alpha_key = Hash(session.pdk + t1.beta + t1.gamma + t1.delta)
 
         # Step 16: epkBiα ← unelligator(rijndael-dec(pdkBi , T1Biα )).
-        dh_pk: PublicKey = PublicKey(unelligator(prp_decrypt(peer.alpha_key, t1.alpha)))
+        peer.dh_pk: bytes = unelligator(prp_decrypt(peer.alpha_key, t1.alpha))
 
         # Step 17: epkBiβ ← T1Biβ
-        csidh_pk = t1.beta
+        peer.csidh_pk = ctidh1024.public_key_from_bytes(t1.beta)
 
         # Step 18: dh1ssi ← H(DH(eskAα , epkBiα))
-        dh_ss = x25519(session.dh_sk, dh_pk)
+        peer.dh_ss = x25519(session.dh_sk, peer.dh_pk)
 
         # Step 19: dh2ssi ← H(DH(eskAβ , epkBiβ)).
-        csidh_ss = csidh.dh(session.csidh_sk, csidh_pk) # note that this can throw exceptions, see app/reunion-client.py:process_t1(T1(t1))
+        peer.csidh_ss = ctidh1024.dh(
+            session.csidh_sk, peer.csidh_pk
+        )  # note that this can throw exceptions, see app/reunion-client.py:process_t1(T1(t1))
 
         # Step 20: T2kitx ← H(pdkA, pdkBi, dh1ssi, dh2ssi)
-        peer.t2key_tx = Hash(session.alpha_key + peer.alpha_key + dh_ss + csidh_ss)
+        peer.t2key_tx = Hash(
+            session.alpha_key + peer.alpha_key + peer.dh_ss + peer.csidh_ss
+        )
 
         # Step 21: T2kirx ← H(pdkBi, pdkA, dh1ssi, dh2ssi)
-        peer.t2key_rx = Hash(peer.alpha_key + session.alpha_key + dh_ss + csidh_ss)
+        peer.t2key_rx = Hash(
+            peer.alpha_key + session.alpha_key + peer.dh_ss + peer.csidh_ss
+        )
 
         # Step 22: T2Ai ← rijndael-enc(T2kitx, skAγ)
         peer.t2_tx = prp_encrypt(peer.t2key_tx, session.sk_gamma)
@@ -296,7 +304,6 @@ class Peer(object):
             return peer.session.dummy_hkdf.expand(peer.t1.id + t2, 32), True
 
     def process_t3(peer, t3: bytes):
-
         """
         This method implements the inside of the for loop in Phase 4 of
         Algorithm 1.

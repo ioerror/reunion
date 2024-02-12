@@ -1,5 +1,5 @@
-sibc
-monocypher-py
+highctidh
+pymonocypher
 ifaddr
 click>=8.0.0
 hkdf

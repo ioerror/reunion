@@ -1,61 +1,61 @@
-from hashlib import blake2b
+import struct
+from hashlib import blake2b, shake_256
 from hkdf import Hkdf
-from sibc.csidh import CSIDH
-from monocypher.secret import SecretBox, CryptoError
-from monocypher.public import PublicKey, PrivateKey, Box
-from monocypher.pwhash import argon2i
-from monocypher._monocypher import lib, ffi
+from highctidh import ctidh
+import monocypher
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
+ctidh1024 = ctidh(1024)
 
-def Hash(msg):
+null_nonce = b"\x00" * 32
+
+
+def Hash(msg: bytes) -> bytes:
     return blake2b(msg).digest()[:32]
 
 
-def x25519(sk, pk):
-    shared = Box(sk, pk).shared_key
-    if isinstance(shared, bytes):
-        # in recent versions of monocypher-ca, shared_key is a property:
-        return shared
-    return shared()
+def argon2i(password: bytes, salt: bytes):
+    password_copy = bytes(
+        c for c in password
+    )  # bug in pymonocypher - it zeroes the bytes object passed in!
+    # FIXME: single-byte bytes objects are interned, so using a single byte
+    # password will result in that object being replaced with 0 *for the rest
+    # of the lifetime of the process*. TODO: fix this in pymonocypher!
+    assert len(password) > 1, "<2 char passwords trigger bug in pymonocypher"
+    # Note: I copied these parameters from the old wrapper we were using
+    # (monocypher-py) when porting to pymonocypher. FIXME: review these
+    return monocypher.argon2i_32(
+        nb_blocks=100000,
+        nb_iterations=3,
+        password=password_copy,
+        salt=salt,
+        key=None,
+        ad=None,
+    )
+
+def hkdf(key, salt):
+    return Hkdf(salt=salt, input_key_material=key, hash=blake2b)
+
+def x25519(sk: bytes, pk: bytes) -> bytes:
+    return monocypher.key_exchange(sk, pk)
 
 
-def aead_encrypt(key, msg, ad):
-    """
-    Where the paper specifies an AEAD, we're using SecretBox's nonce as the AD.
-    This is very much *not* the same as an AEAD, as the nonce should not be
-    reused with the same key whereas the AD may be. In our case, we are never
-    encrypting multiple messages with the same key, so this should be OK?
-
-    We should probably replace this with an actual AEAD construction :)
-    """
-    ct = SecretBox(key).encrypt(msg, nonce=Hash(ad)[:24])
-    return ct.detached_mac + ct.detached_ciphertext
+def aead_encrypt(key: bytes, msg: bytes, ad: bytes) -> bytes:
+    mac, ct = monocypher.lock(key, null_nonce, msg, associated_data=ad)
+    return mac + ct
 
 
-def aead_decrypt(key, msg, ad):
+def aead_decrypt(key: bytes, msg: bytes, ad: bytes) -> bytes:
     mac, ct = msg[:16], msg[16:]
-    try:
-        res = SecretBox(key).decrypt_raw(ct, Hash(ad)[:24], mac)
-    except CryptoError as ex:
-        # this happens if the mac failed. callers should check for None and
-        # behave accordingly.
-        res = None
-    return res
+    return monocypher.unlock(key, null_nonce, mac, ct, associated_data=ad)
 
 
-def unelligator(hidden:bytes):
-    hidden = ffi.from_buffer("uint8_t[32]", hidden)
-    curve = ffi.new("uint8_t[32]")
-    lib.crypto_hidden_to_curve(curve, hidden)
-    return bytes(curve)
+def unelligator(hidden: bytes) -> bytes:
+    return monocypher.elligator_map(hidden)
 
-def generate_hidden_key_pair(seed):
-    hidden = ffi.new("uint8_t[32]")
-    secret = ffi.new("uint8_t[32]")
-    seed = ffi.from_buffer("uint8_t[32]", seed)
-    lib.crypto_hidden_key_pair(hidden, secret, seed)
-    return bytes(hidden), bytes(secret)
+
+def generate_hidden_key_pair(seed: bytes) -> bytes:
+    return monocypher.elligator_key_pair(seed)
 
 
 def prp_encrypt(key, msg):
@@ -81,17 +81,65 @@ def prp_decrypt(key, ct):
     decryptor = cipher.decryptor()
     return decryptor.update(ct) + decryptor.finalize()
 
+def highctidh_deterministic_rng(seed:bytes):
+    '''
+    This function was copied from a file in the examples directory in a branch
+    of the highctidh repo, and is used only to enable known-answer tests.
 
-csidh_parameters = dict(
-    curvemodel="montgomery",
-    prime="p512",
-    formula="hvelu",
-    style="df",
-    exponent=10,
-    tuned=True,
-    uninitialized=False,
-    multievaluation=False,
-    verbose=False,
-)
+    ---
 
-csidh = CSIDH(**csidh_parameters)
+    Instantiate a SHAKE-256-based CSPRNG using a seed.
+    The seed should be at least 32 bytes (256 bits).
+
+    Returns a function suitable for the optional rng=
+    argument to highctidh.ctidh.generate_secret_key.
+    This enables deterministic key generation when also passing a deterministic
+    context= argument.
+
+    The CSPRNG keeps state internally to be able to provide
+    unique entropy to libhighctidh (which calls it many times
+    during the process of generating a key).
+
+    It is safe to use the same seed to generate multiple keys if (and only if)
+    **distinct** context arguments are passed.
+
+    Usage:
+        import secrets
+        # These should be saved/restored in consequent runs:
+        my_seed = secrets.token_bytes(32)
+        my_context = 1
+        # Load the library:
+        import highctidh
+        ct1024 = highctidh.ctidh(1024)
+        # Instantiate CSPRNG:
+        det_rng = deterministic_rng(seed)
+        # (Re-)generate the private key:
+        priv_key = ct1024.generate_secret_key(rng=det_rng, context=my_context)
+    '''
+    assert len(seed) >= 32, "deterministic seed should be at least 256 bits"
+    context_state = {}
+    def shake256_csprng(buf:memoryview, context:int):
+        # context_state[context] is a counter, incremented on each call,
+        # packed to little-endian uint64
+        context_state[context] = 1 + context_state.get(context, 0)
+        portable_state = struct.pack('<Q', context_state[context])
+        # the user provided context packed to little-endian uint64:
+        portable_context = struct.pack('<Q', context)
+        little_endian_out = shake_256(
+            portable_context + portable_state + seed
+        ).digest(len(buf))
+        # interpret as little-endian uint32 tuples
+        # and pack to native byte order as expected by libhighctidh.
+        # This is required to get deterministic keys independent of the
+        # endian-ness of the host machine:
+        for i in range(0, len(buf), 4):
+            portable_uint32 = struct.unpack('<L',little_endian_out[i:i+4])[0]
+            buf[i:i+4] = struct.pack(
+                '=L', portable_uint32)
+    return shake256_csprng
+
+# def myrng(buf, ctx):
+#    """realistic rng for real usage"""
+#    buf[:] = secrets.token_bytes(len(buf))
+
+# x = ctidh_f.generate_secret_key(rng=myrng)
