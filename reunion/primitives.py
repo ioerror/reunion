@@ -15,22 +15,14 @@ def Hash(msg: bytes) -> bytes:
 
 
 def argon2i(password: bytes, salt: bytes):
-    password_copy = bytes(
-        c for c in password
-    )  # bug in pymonocypher - it zeroes the bytes object passed in!
-    # FIXME: single-byte bytes objects are interned, so using a single byte
-    # password will result in that object being replaced with 0 *for the rest
-    # of the lifetime of the process*. TODO: fix this in pymonocypher!
-    assert len(password) > 1, "<2 char passwords trigger bug in pymonocypher"
-    # Note: I copied these parameters from the old wrapper we were using
-    # (monocypher-py) when porting to pymonocypher. FIXME: review these
     return monocypher.argon2i_32(
         nb_blocks=100000,
         nb_iterations=3,
-        password=password_copy,
+        password=password,
         salt=salt,
         key=None,
         ad=None,
+        _wipe=False,
     )
 
 def hkdf(key, salt):
