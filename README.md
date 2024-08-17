@@ -119,9 +119,11 @@ pip install -e .
 
 Run the test suite with `pytest`:
 
-* `pytest`
+* `pytest -v`
 
 ### Building a Debian package
 
-To generate a Debian package:
-* `python3 setup.py --command-packages=stdeb.command sdist_dsc bdist_deb`
+Generate a Debian package for local use:
+```
+fakeroot debian/rules build binary
+```

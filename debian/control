@@ -1,0 +1,23 @@
+Source: reunion
+Maintainer: REUNION Authors <git@rendezvous.contact>
+Section: python
+Priority: optional
+Build-Depends: dh-python, python3-setuptools, python3-all, debhelper (>= 9)
+Standards-Version: 3.9.6
+Homepage: https://codeberg.org/rendezvous/reunion
+
+Package: python3-reunion
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends}
+Description: REUNION is for rendezvous
+ This is the reference implementation of the REUNION cryptographic redezvous
+ protocol.
+ .
+ # What is REUNION?
+ .
+ REUNION is a privacy preserving transitionally post-quantum cryptographic
+ protocol for rendezvous between two or more participants. With the use of an
+ arbitrary shared passphrase and an agreed upon location or communications
+ medium, two or more participants may exchange a message, usually contact
+ information such as addresses or public keys.
+ .
