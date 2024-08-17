@@ -1,8 +1,10 @@
 import os
 import unittest
 
-from reunion.primitives import *
-
+from reunion.primitives import aead_decrypt, aead_encrypt, argon2i
+from reunion.primitives import generate_hidden_key_pair, Hash
+from reunion.primitives import highctidh_deterministic_rng, hkdf, prp_decrypt
+from reunion.primitives import prp_encrypt, unelligator, x25519
 
 class TestPrimitives(unittest.TestCase):
     def test_aead(self):
