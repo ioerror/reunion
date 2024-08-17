@@ -68,7 +68,7 @@ setuptools.setup(
     entry_points={
     "console_scripts": [
         "reunion-on-an-ethernet=reunion.multicast:main",
-        "reunion=reunion.client:main",
+        "reunion-client=reunion.client:main",
         "reunion-server=reunion.server:main",
         ]
     },
@@ -77,7 +77,6 @@ setuptools.setup(
     package_data={},
     include_package_data=False,
     zip_safe=True,
-    tests_require=["pytest", "pytest-cov"],
     cmdclass=dict(
         bdist_deb=bdist_deb,
         man_pages=man_pages,

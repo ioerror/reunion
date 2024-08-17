@@ -1,8 +1,10 @@
 import os
 import unittest
 
-from reunion.primitives import *
-
+from reunion.primitives import aead_decrypt, aead_encrypt, argon2i
+from reunion.primitives import generate_hidden_key_pair, Hash
+from reunion.primitives import highctidh_deterministic_rng, hkdf, prp_decrypt
+from reunion.primitives import prp_encrypt, unelligator, x25519
 
 class TestPrimitives(unittest.TestCase):
     def test_aead(self):
@@ -31,12 +33,8 @@ class TestPrimitives(unittest.TestCase):
         a1 = argon2i(passphrase, salt)
         a2 = argon2i(passphrase, salt)
         assert a1 == a2
-        pdk1 = Hkdf(
-            salt=salt, input_key_material=argon2i(passphrase, salt), hash=blake2b
-        ).expand(b"", 32)
-        pdk2 = Hkdf(
-            salt=salt, input_key_material=argon2i(passphrase, salt), hash=blake2b
-        ).expand(b"", 32)
+        pdk1 = hkdf(argon2i(passphrase, salt), salt).expand(b"", 32)
+        pdk2 = hkdf(argon2i(passphrase, salt), salt).expand(b"", 32)
         assert pdk1 == pdk2
 
     def _test_argon_single_char(self):
