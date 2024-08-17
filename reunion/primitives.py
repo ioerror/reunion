@@ -1,6 +1,6 @@
 import struct
 from hashlib import blake2b, shake_256
-from hkdf import Hkdf
+from hkdf import Hkdf as _Hkdf
 from highctidh import ctidh
 import monocypher
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -25,8 +25,8 @@ def argon2i(password: bytes, salt: bytes):
         _wipe=False,
     )
 
-def hkdf(key, salt):
-    return Hkdf(salt=salt, input_key_material=key, hash=blake2b)
+def hkdf(key, salt, hash=blake2b):
+    return _Hkdf(salt=salt, input_key_material=key, hash=hash)
 
 def x25519(sk: bytes, pk: bytes) -> bytes:
     return monocypher.key_exchange(sk, pk)

@@ -31,12 +31,8 @@ class TestPrimitives(unittest.TestCase):
         a1 = argon2i(passphrase, salt)
         a2 = argon2i(passphrase, salt)
         assert a1 == a2
-        pdk1 = Hkdf(
-            salt=salt, input_key_material=argon2i(passphrase, salt), hash=blake2b
-        ).expand(b"", 32)
-        pdk2 = Hkdf(
-            salt=salt, input_key_material=argon2i(passphrase, salt), hash=blake2b
-        ).expand(b"", 32)
+        pdk1 = hkdf(argon2i(passphrase, salt), salt).expand(b"", 32)
+        pdk2 = hkdf(argon2i(passphrase, salt), salt).expand(b"", 32)
         assert pdk1 == pdk2
 
     def _test_argon_single_char(self):
