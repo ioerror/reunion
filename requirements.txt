@@ -1,5 +1,5 @@
 highctidh
-pymonocypher
+pymonocypher>=4.0.2.4
 ifaddr
 click>=8.0.0
 hkdf
@@ -8,3 +8,5 @@ flask[async]>=2.1.2
 stem
 requests
 PySocks
+setuptools
+toml
