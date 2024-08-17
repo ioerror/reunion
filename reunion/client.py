@@ -205,8 +205,15 @@ async def launch(passphrase, message, mode, verbose, duration:int,
 @click.option("--message", prompt=True, required=True, type=str,
               help="Message to deliver to people using the same password", )
 @click.option("--passphrase", prompt=True, required=True, type=str, help="Passphrase/password")
-def main(**kw):
+def client(**kw):
+    """
+    REUNION http/tcp/tor client
+    """
     asyncio.run(launch(**kw))
 
+def main(**kw):
+    client(**kw)
+
 if '__main__' == __name__:
-    main()
+    import doctest
+    doctest.testmod(verbose=True)

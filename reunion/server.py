@@ -201,9 +201,16 @@ def launch(mode, verbose, bind, private_onion_key):
               help='http/tcp/tor', ) # TODO this should be a choice somehow
 @click.option("--private-onion-key", type=str, default=None,
               help='key for the onion service address')
-def main(**kw):
+def server(**kw):
+    """
+    REUNION http/tcp/tor server
+    """
     print('mode', kw['mode'])
     launch(**kw)
 
+def main(**kw):
+    server(**kw)
+
 if '__main__' == __name__:
-    main()
+    import doctest
+    doctest.testmod(verbose=True)

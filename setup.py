@@ -57,7 +57,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     license="GPLv3",
     url="https://codeberg.org/rendezvous/reunion",
-    packages=["reunion"],
+    packages=setuptools.find_packages(),
     keywords="post-quantum, REUNION, rendezvous, encryption, meeting-people-is-easy",
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -67,8 +67,9 @@ setuptools.setup(
     python_requires=">=3.9",
     entry_points={
     "console_scripts": [
-        "reunion-on-an-ethernet=reunion.multicast:main",
+        "reunion=reunion.cli:main",
         "reunion-client=reunion.client:main",
+        "reunion-on-an-ethernet=reunion.multicast:main",
         "reunion-server=reunion.server:main",
         ]
     },

@@ -220,9 +220,9 @@ def run(passphrase, message, interval, multicast_group, port, reveal_once, bind_
 )
 @click.option("--passphrase", prompt=True, type=str, help="The passphrase")
 @click.option("--message", prompt=True, type=str, help="The message")
-def main(*a, **kw):
+def multicast(*a, **kw):
     """
-    This implements REUNION on an ethernet.
+    REUNION on an ethernet using multicast
 
     If you run it with no arguments, you will be prompted for a passphrase and
     message.
@@ -233,6 +233,9 @@ def main(*a, **kw):
 
     run(*a, **kw)
 
+def main(**kw):
+    multicast(**kw)
 
 if __name__ == "__main__":
-    main()
+    import doctest
+    doctest.testmod(verbose=True)
