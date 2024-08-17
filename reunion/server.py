@@ -5,9 +5,9 @@
 from typing import Set
 
 HASH_LEN = 32 # output of primitives.Hash()
-MSG_LEN  = 96 # padded message size, would be nice if this could be given as a parameter to ReunionSession
+MSG_LEN  = 96 + 64 # padded message size, would be nice if this could be given as a parameter to ReunionSession
 KIND_CHUNK_SIZE = {
-    't1': 32 + 64 + 16 + MSG_LEN+16, # ?? + prp + mac + msg + mac
+    't1': 32 + 64 + 16 + MSG_LEN + 16, # t1
     't2': HASH_LEN + 32, # Hash(t1) + t2
     't3': HASH_LEN + 32, # Hash(t1) + t3
 }

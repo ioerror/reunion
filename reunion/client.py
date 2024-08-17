@@ -104,10 +104,10 @@ async def store_result(result:bytes):
         dumpable = ['hex', result.hex()]
     print(json.dumps(dumpable))
 
-async def launch(passphrase, msg, mode, verbose, duration_int:int,
+async def launch(passphrase, message, mode, verbose, duration:int,
                  mandatory_sleep=0.5, randomized_sleep=2):
     start_time = datetime.datetime.now()
-    duration = datetime.timedelta(seconds=duration_int)
+    duration = datetime.timedelta(seconds=duration)
 
     if verbose:
         logger.setLevel(logging.DEBUG)
@@ -123,7 +123,7 @@ async def launch(passphrase, msg, mode, verbose, duration_int:int,
         raise Exception(f'invalid --mode {repr(mode)}')
 
     Me = ReunionSession.create(passphrase.encode(),
-                               msg.encode()[:96].ljust(96) # TODO truncation?
+                               message.encode()[:96].ljust(96) # TODO truncation?
                                # TODO pass in salt= epoch id here, e.g. tor shared random
                                )
     my_t1 = Me.t1 # Me.t1.ljust(256)
@@ -200,7 +200,7 @@ async def launch(passphrase, msg, mode, verbose, duration_int:int,
 @click.option("--mode", type=str, default='http',
               show_default=True,
               help='http/tcp/tor', )
-@click.option("--msg", prompt=True, required=True, type=str,
+@click.option("--message", prompt=True, required=True, type=str,
               help="Message to deliver to people using the same password", )
 @click.option("--passphrase", prompt=True, required=True, type=str, help="Passphrase/password")
 def main(**kw):
