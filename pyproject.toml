@@ -1,7 +1,9 @@
 [project]
 name = "reunion"
-description = "reunion is for rendezvous"
-version = "1.0.0"
+version = "1.0.1"
+dynamic = ["description", "readme", "requires-python", "license", "authors",
+           "keywords", "classifiers", "urls", "scripts", "gui-scripts",
+            "entry-points", "dependencies", "optional-dependencies"]
 [build-system]
 requires = ["setuptools", "wheel", "toml"]
 build-backend = "setuptools.build_meta"

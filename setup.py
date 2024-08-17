@@ -68,7 +68,7 @@ setuptools.setup(
     entry_points={
     "console_scripts": [
         "reunion-on-an-ethernet=reunion.multicast:main",
-        "reunion=reunion.client:main",
+        "reunion-client=reunion.client:main",
         "reunion-server=reunion.server:main",
         ]
     },
