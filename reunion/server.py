@@ -2,6 +2,8 @@
 # TODO: Tor stuff is not finished yet.
 # TODO: should probably persist messages to an on-disk thing to survive restarts
 
+from reunion.__version__ import __version__
+
 from typing import Set
 
 HASH_LEN = 32 # output of primitives.Hash()
@@ -188,6 +190,7 @@ def launch(mode, verbose, bind, private_onion_key):
         asyncio.run(serve_tcp(bind))
 
 @click.command()
+@click.version_option(__version__)
 @click.option("--bind", type=str, show_default=True,
               default='127.0.0.2',
               help="IP to bind to in TCP/tor mode", )

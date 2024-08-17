@@ -28,6 +28,7 @@ import ifaddr
 import click
 
 from reunion.session import ReunionSession, T1
+from reunion.__version__ import __version__
 
 
 class UDPListener(object):
@@ -201,6 +202,7 @@ def run(passphrase, message, interval, multicast_group, port, reveal_once, bind_
 
 
 @click.command()
+@click.version_option(__version__)
 @click.option(
     "--interval",
     "-I",

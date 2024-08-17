@@ -10,6 +10,7 @@ from reunion.primitives import Hash
 
 # TODO: Hash should have a property specifying byte length
 from reunion.session import ReunionSession, T1
+from reunion.__version__ import __version__
 
 # process_t1: should probably case to T1()
 import requests
@@ -191,6 +192,7 @@ async def launch(passphrase, message, mode, verbose, duration:int,
         logger.debug('looping')
 
 @click.command()
+@click.version_option(__version__)
 @click.option("--duration", type=int,
               default=24*3600,
               show_default=True,
