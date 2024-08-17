@@ -14,7 +14,7 @@ def Hash(msg: bytes) -> bytes:
     return blake2b(msg).digest()[:32]
 
 
-def argon2i(password: bytes, salt: bytes):
+def argon2i(password: bytes, salt: bytes, _wipe: bool=False):
     return monocypher.argon2i_32(
         nb_blocks=100000,
         nb_iterations=3,
@@ -22,7 +22,7 @@ def argon2i(password: bytes, salt: bytes):
         salt=salt,
         key=None,
         ad=None,
-        _wipe=False,
+        _wipe=_wipe,
     )
 
 def hkdf(key, salt, hash=blake2b):
