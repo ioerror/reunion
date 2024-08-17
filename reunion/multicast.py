@@ -19,6 +19,7 @@ Mallory arrived early and Bob doesn't arrive until epoch N+1... but if both
 parties keep running the protocol then we'll get spurious alerts about 3rd
 parties that aren't really there. 🤔
 
+>>> assert UDPListener is not None
 """
 import socket
 import struct

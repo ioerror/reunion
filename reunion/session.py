@@ -1,10 +1,13 @@
-import os
-from typing import Dict, List
-
 """
 This module implements the REUNION cryptographic protocol as described in
 Algorithm 1 of the REUNION paper.
+
+>>> assert len(DEFAULT_SALT) == 32
 """
+
+import os
+from typing import Dict, List
+
 
 # Curve25519 E/F p with Diﬀie-Hellman function DH(private, public), base point
 # P ∈ E(F p ), 32-byte EpochID, 32-byte SharedRandom, aead-enc(key, plaintext,
@@ -49,6 +52,10 @@ class T1(bytes):
     key which is revealed by the T2.
     – δ is an AEAD ciphertext containing the message payload which is only de-
     cryptable by a valid T3.
+
+
+    >>> T1() # doctest: +ELLIPSIS
+    <T1:...>
     """
 
     LEN_ALPHA = 32
@@ -57,14 +64,35 @@ class T1(bytes):
 
     @property
     def alpha(self):
+        """
+        Returns *T1.LEN_ALPHA* byte slice
+
+        >>> t1 = T1()
+        >>> t1.alpha
+        b''
+        """
         return self[: self.LEN_ALPHA]
 
     @property
     def beta(self):
+        """
+        Returns *T1.LEN_BETA* byte slice
+
+        >>> t1 = T1()
+        >>> t1.beta
+        b''
+        """
         return self[self.LEN_ALPHA : self.LEN_ALPHA + self.LEN_BETA]
 
     @property
     def gamma(self):
+        """
+        Returns *T1.LEN_GAMMA* byte slice
+
+        >>> t1 = T1()
+        >>> t1.gamma
+        b''
+        """
         return self[
             self.LEN_ALPHA
             + self.LEN_BETA : self.LEN_ALPHA
@@ -74,13 +102,38 @@ class T1(bytes):
 
     @property
     def delta(self):
+        """
+        Returns *T1.LEN_DELTA* byte slice
+
+        >>> t1 = T1()
+        >>> t1.delta
+        b''
+        """
         return self[self.LEN_ALPHA + self.LEN_BETA + self.LEN_GAMMA :]
 
     @property
     def id(self):
+        """
+        Returns a *Hash* of itself as the id.
+
+        >>> t1 = T1()
+        >>> t1_id = t1.id
+        >>> expected = '786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419'
+        >>> t1_id.hex() == expected
+        True
+        >>> len(t1_id) == 32
+        True
+        """
         return Hash(self)
 
     def __repr__(self):
+        """
+        *__repr__* returns the type and six bytes of the id encoded as hex.
+
+        >>> t1 = T1()
+        >>> t1.__repr__() # doctest: +ELLIPSIS
+        '<T1:...>'
+        """
         return "<%s:%s>" % (
             type(self).__name__,
             self.id[:6].hex(),
@@ -93,12 +146,17 @@ class ReunionSession(object):
     Phases 0 and 1 are implemented in this object directly, while 2, 3, and 4
     are implemented in the Peer object which ReunionSession instantiates for
     each new t1.
+
+    >>> ReunionSession() # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    TypeError: ReunionSession.__init__() missing 9...
     """
 
     @classmethod
     def keygen(cls):
         """
-        All of the RNG access is consolodated here in a class method, so that
+        All of the RNG access is consolidated here in a class method, so that
         everything else in the ReunionSession and Peer classes (except "create"
         which calls this) can be sans IO.
         """
@@ -330,3 +388,7 @@ class Peer(object):
             # Step 39: add to results
             peer.session.results.append(peer.payload)
         return peer.payload
+
+if '__main__' == __name__:
+    import doctest
+    doctest.testmod(verbose=True)

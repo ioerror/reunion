@@ -11,6 +11,16 @@ null_nonce = b"\x00" * 32
 
 
 def Hash(msg: bytes) -> bytes:
+    """
+    *Hash* takes *msg* and returns 32 bytes of the *blake2b* digest of the
+    message as bytes.
+
+    >>> _hash = Hash(b'REUNION is for rendezvous')
+    >>> len(_hash) == 32
+    True
+    >>> type(_hash) == bytes
+    True
+    """
     return blake2b(msg).digest()[:32]
 
 
