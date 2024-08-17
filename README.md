@@ -5,13 +5,31 @@ REUNION: rendezvous unobservability
 This is the reference implementation of the REUNION cryptographic redezvous
 protocol.
 
+# What is REUNION?
+
+REUNION is a privacy preserving transitionally post-quantum cryptographic
+protocol for rendezvous between two or more participants. With the use of an
+arbitrary shared passphrase and an agreed upon location or communications
+medium, two or more participants may exchange a message, usually contact
+information such as addresses or public keys.
+
+## Status of `reunion` implementing REUNION
+
 This is pre-release software, under active development.
+
+# How to use REUNION?
+
+It may be used on a local-area network with multicast with
+`reunion-on-an-ethernet` or experimentally with `reunion-client` for use with a
+`reunion-server`.
 
 ## Using REUNION on an ethernet
 
+After installing the Python `reunion` module it is possible to run purpose
+built specific commands for the specific usecase that is interesting:
 ```
-$ python -m reunion.multicast --help
-Usage: python -m reunion.multicast [OPTIONS]
+$ reunion-on-an-ethernet --help
+Usage: reunion-on-an-ethernet [OPTIONS]
 
   This implements REUNION on an ethernet.
 
@@ -29,13 +47,38 @@ Options:
   --passphrase TEXT       The passphrase
   --message TEXT          The message
   --help                  Show this message and exit.
+
 ```
 
-## Using REUNION on a SPOF
+## Using REUNION on a Single Point of Failure (SPOF)
 
-* coming soon
+Using `reunion` outside of a local-area network is possible. We have
+implemented a web server in `reunion-server`. The `reunion-server` is a
+location where `reunion` clients may send and receive messsages to run the
+REUNION protocol.
+
+The `reunion-server` program provides an HTTP interface which by design is
+bound only to localhost by default:
+```
+$ reunion-server
+mode http
+ * Serving Flask app 'reunion.server'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+```
+
+The `reunion-client` client program connects to a `reunion-server` and
+performs REUNION protocol runs until it is manually stopped:
+```
+$ reunion-client --msg 'hello world' --passphrase 'I am a jelly donut'
+```
 
 ## ReunionSession API
+
+The `reunion` library provides an API for Python developers to integrate the
+REUNION protcol into their applications.
 
 The `reunion.session` python module provides a sans IO implementation of the
 cryptographic protocol which applications can use. So far, `reunion.multicast`
@@ -62,12 +105,21 @@ is the only user of this module.
   their own requirement that T1 messages be a fixed size, but the
   ReunionSession API does not require them to do so.
 
+### Setting up REUNION for development
+
+We recommend using a Python virtual environment and installing the library with
+`pip` in editable mode:
+```
+python -m venv venv
+source venv/bin/activate
+pip install -e .
+```
+
 ### Running the tests
 
-Either of these commands will run the test suite:
+Run the test suite with `pytest`:
 
 * `pytest`
-* `python3 setup.py test`
 
 ### Building a Debian package
 
