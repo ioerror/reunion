@@ -1,4 +1,8 @@
-#!/usr/bin/env python3
+"""
+REUNION client
+
+>>> assert logger is not None
+"""
 
 # TODO: do something about hardcoded message length (96)
 # TODO: more click options for ports, ips, etc.
@@ -25,6 +29,8 @@ import socks
 
 import logging
 logger = logging.getLogger('reunion-client')
+
+
 
 def through_socks_proxy(socks_addr, socks_port, target_addr, target_port,
                         username=None, password=None):

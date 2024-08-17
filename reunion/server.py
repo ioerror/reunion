@@ -1,4 +1,8 @@
-#!/usr/bin/env python3
+"""
+REUNION server
+
+>>> assert logger is not None
+"""
 # TODO: Tor stuff is not finished yet.
 # TODO: should probably persist messages to an on-disk thing to survive restarts
 
