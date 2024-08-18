@@ -11,3 +11,6 @@ build-backend = "setuptools.build_meta"
 commands = ["pytest"]
 [tool.setuptools]
 packages = ["reunion"]
+
+[tool.pytest.ini_options]
+addopts = "-v --doctest-modules"
