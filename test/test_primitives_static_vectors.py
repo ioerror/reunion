@@ -11,7 +11,7 @@ from reunion.__vectors__ import epk_a, epk_b
 from reunion.__vectors__ import esk_a, esk_b
 from reunion.__vectors__ import pk_a, pk_b
 from reunion.__vectors__ import aead_key, aead_pt, aead_ad, aead_ct
-from reunion.__vectors__ import prp_key, prp_msg, prp_ct
+from reunion.__vectors__ import prp_key, prp_pt, prp_ct
 from reunion.__vectors__ import a1, a2, pdk1, pdk2, h, h_preimage
 
 
@@ -64,10 +64,10 @@ class TestPrimitivesStaticVectors(unittest.TestCase):
         self.assertEqual(ss1, ss2)
 
     def test_prp(self):
-        _ct = prp_encrypt(prp_key, prp_msg)
+        _ct = prp_encrypt(prp_key, prp_pt)
         self.assertEqual(prp_ct, _ct)
         _msg = prp_decrypt(prp_key, _ct)
-        self.assertEqual(prp_msg, _msg)
+        self.assertEqual(prp_pt, _msg)
 
     def test_argon_hkdf_with_internal_argon2i_bzero(self):
         salt_a1 = DEFAULT_HKDF_SALT

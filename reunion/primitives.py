@@ -16,13 +16,13 @@ def Hash(msg: bytes) -> bytes:
     *Hash* takes *msg* and returns 32 bytes of the *blake2b* digest of the
     message as bytes.
 
-    >>> _hash_preimage = bytes('REUNION is for rendezvous', 'utf-8')
-    >>> _hash = Hash(_hash_preimage)
-    >>> _hash.hex()
-    '1ffb4f05cb3e841d44079afbcc51f62edbd7092294edac59846b8519f48c5a45'
+    >>> from reunion.__vectors__ import h, h_preimage
+    >>> _hash = Hash(h_preimage)
     >>> len(_hash) == 32
     True
     >>> type(_hash) == bytes
+    True
+    >>> h == _hash
     True
     """
     return _blake2b(msg).digest()[:32]
@@ -35,11 +35,10 @@ def argon2i(password: bytes, salt: bytes, _iterations: int = 3,
 
     REUNION does not negotiate the other parameters to argon2i.
 
-    >>> argon2i_password = b'REUNION is for rendezvous'
-    >>> argon2i_salt = DEFAULT_ARGON_SALT
-    >>> argon2i_hash = argon2i(argon2i_password, argon2i_salt)
-    >>> argon2i_hash.hex()
-    '131f782cae57faa5055277621aec7c3984fbef048c8d183848f3def2697c7acd'
+    >>> from reunion.__vectors__ import argon2i_password, argon2i_salt, argon2i_hash
+    >>> _argon2i_hash = argon2i(argon2i_password, argon2i_salt)
+    >>> argon2i_hash == _argon2i_hash
+    True
     """
     return monocypher.argon2i_32(
         nb_blocks=100000,
@@ -70,22 +69,13 @@ def x25519(sk: bytes, pk: bytes) -> bytes:
     already be transformed from an elligator representation to a normal x25519
     public key with *unelligator*.
 
-    >>> sk_seed_a: bytes = bytes.fromhex('a0f5f44533e439e9aced82d38eaab109df03c6f26833530343b1fac080fc6287')
-    >>> sk_seed_b: bytes = bytes.fromhex('31a09e46971b29b5a9c59706c973d4f7f00361b442fd08b4724103b0b7f3ab24')
-    >>> epk_25519_a, sk_25519_a = generate_hidden_key_pair(sk_seed_a)
-    >>> epk_25519_b, sk_25519_b = generate_hidden_key_pair(sk_seed_b)
+    >>> from reunion.__vectors__ import x25519_sk_seed_a, x25519_sk_seed_b
+    >>> epk_25519_a, sk_25519_a = generate_hidden_key_pair(x25519_sk_seed_a)
+    >>> epk_25519_b, sk_25519_b = generate_hidden_key_pair(x25519_sk_seed_b)
     >>> pk_25519_a = unelligator(epk_25519_a)
-    >>> pk_25519_a.hex()
-    'c1e0735aa6568ffc51da59648beb6f8bd26f1467574f3fbfec40986c399b032d'
     >>> pk_25519_b = unelligator(epk_25519_b)
-    >>> pk_25519_b.hex()
-    '7d5b74eddeff3f1a6b58d5eb9f8304c20b15cf0548eb93f73e400bbbaba60d5c'
     >>> shared_secret_a: bytes = x25519(sk_25519_a, pk_25519_b)
-    >>> shared_secret_a.hex()
-    '39e7f6f55136fc08032c8f69942351cc9ba48e473e1d9f327d8feb99376a6d36'
     >>> shared_secret_b: bytes = x25519(sk_25519_b, pk_25519_a)
-    >>> shared_secret_b.hex()
-    '39e7f6f55136fc08032c8f69942351cc9ba48e473e1d9f327d8feb99376a6d36'
     >>> shared_secret_a == shared_secret_b 
     True
     """
@@ -151,12 +141,13 @@ def generate_hidden_key_pair(seed: bytes) -> bytes:
     key encoded with the elligator map, and the corresponding bytes object for
     the respective x25519 secret key.
 
-    >>> sk_seed_a: bytes = bytes.fromhex('5aace7eec7f3a5ead537d23cbee29ed1003f3aa73d9a7a97b72d249b9119d409')
-    >>> epk_25519_a, sk_25519_a = generate_hidden_key_pair(sk_seed_a)
-    >>> epk_25519_a.hex()
-    'dd134b5b287d6698f8db9cd58f7f4ccd2293103010fd2e7a11ed984debe2cde6'
-    >>> sk_25519_a.hex()
-    'd6b067b9b98e9616dde7e9aa52bd75f13493897ec4908230508b5abb293a5140'
+    >>> from reunion.__vectors__ import hidden_key_pair_seed, hidden_key_pair_pk_a
+    >>> from reunion.__vectors__ import hidden_key_pair_sk_a
+    >>> epk_25519_a, sk_25519_a = generate_hidden_key_pair(hidden_key_pair_seed)
+    >>> hidden_key_pair_pk_a == epk_25519_a 
+    True
+    >>> hidden_key_pair_sk_a == sk_25519_a
+    True
     """
     return monocypher.elligator_key_pair(seed)
 
@@ -169,11 +160,14 @@ def generate_ctidh_key_pair(seed: bytes) -> (object, object):
     FIXME: it would be nice to upstream this function (and the CSPRNG it uses,
     defined later in this file) to the highctidh library.
 
-    >>> pk, sk = generate_ctidh_key_pair(seed=b'A'*32)
-    >>> bytes(pk).hex()
-    'a0e897b81374cc17aa917637cda97a56377c9b7bdbe86a53a6f01ce35a0366684568e7de4e38000214a2600ac6a9d07b2379ccccdf0c7ca94ff1288eeb06347101be8cabd24543315eb1d00596d05ebfcde4f13e076bc30635db8aa249b55c992ecb24f9ba128a90b8b1d93420ca8f6454572d4c3b492027b942fb45d1e5a20e'
-    >>> bytes(sk).hex()
-    '01fffd00ff000000ff03ff00fd00ff00fe00000000ffff0100ffff01ff0200ff0100ffff01010001fffffe0001020001010000ff03000100ff00ff0000fd0000fe0003010100ff0302000000ff000000fe000002010001ffff00000000fe03000001ff0001fe010000010000ff00ff0100ffff00010101000000000000000100ff00'
+    >>> from reunion.__vectors__ import ctidh_key_pair_seed
+    >>> from reunion.__vectors__ import ctidh_key_pair_seed_pk
+    >>> from reunion.__vectors__ import ctidh_key_pair_seed_sk
+    >>> pk, sk = generate_ctidh_key_pair(seed=ctidh_key_pair_seed)
+    >>> ctidh_key_pair_seed_pk == bytes(pk)
+    True
+    >>> ctidh_key_pair_seed_sk == bytes(sk)
+    True
     """
     rng = highctidh_deterministic_rng(seed)
     sk = ctidh1024.generate_secret_key(rng=rng, context=1)
@@ -192,10 +186,8 @@ def prp_encrypt(key: bytes, plaintext: bytes):
     Currently we use two 128 bit blocks of AES as rijndael is not in the
     standard library; it should be replaced with rijndael.
 
-    >>> prp_key = bytes.fromhex('37620a87ccc74b5e425164371603bd96c794594b7d07e4887bae6c7f08fa9659')
-    >>> prp_plaintext = bytes.fromhex('5245554e494f4e20697320666f722052656e64657a766f75732e2e2e20505250')
-    >>> prp_ct = bytes.fromhex('a74b26c607e56b1f59a84d91ff738e6b55f94ceedc418118347c2b733e5ebe92')
-    >>> _prp_ct = prp_encrypt(prp_key, prp_plaintext)
+    >>> from reunion.__vectors__ import prp_key, prp_pt, prp_ct
+    >>> _prp_ct = prp_encrypt(prp_key, prp_pt)
     >>> prp_ct == _prp_ct
     True
     """
@@ -218,14 +210,12 @@ def prp_decrypt(key: bytes, ciphertext: bytes):
     Currently we use two 128 bit blocks of AES as rijndael is not in the
     standard library; it should be replaced with rijndael.
 
-    >>> prp_key = bytes.fromhex('37620a87ccc74b5e425164371603bd96c794594b7d07e4887bae6c7f08fa9659')
-    >>> prp_plaintext = bytes.fromhex('5245554e494f4e20697320666f722052656e64657a766f75732e2e2e20505250')
-    >>> prp_ct = bytes.fromhex('a74b26c607e56b1f59a84d91ff738e6b55f94ceedc418118347c2b733e5ebe92')
-    >>> _prp_ct = prp_encrypt(prp_key, prp_plaintext)
+    >>> from reunion.__vectors__ import prp_key, prp_pt, prp_ct
+    >>> _prp_ct = prp_encrypt(prp_key, prp_pt)
     >>> prp_ct == _prp_ct
     True
     >>> _prp_pt = prp_decrypt(prp_key, prp_ct)
-    >>> prp_plaintext == _prp_pt
+    >>> prp_pt == _prp_pt
     True
     """
     assert len(ciphertext) == 32, len(ciphertext)
@@ -257,10 +247,9 @@ def highctidh_deterministic_rng(seed: bytes):
     It is safe to use the same seed to generate multiple keys if (and only if)
     **distinct** context arguments are passed.
 
-    >>> highctidh_drng_seed = bytes.fromhex('163d228fd8182bdb0e259fbf0ed5a776b47126ba4d61d774cce87f6546f8d677')
-    >>> highctidh_context = 1
+    >>> from reunion.__vectors__ import highctidh_context, highctidh_drng_seed
     >>> det_rng = highctidh_deterministic_rng(highctidh_drng_seed)
-    >>> highctidh_1024_priv_key = ctidh1024.generate_secret_key(rng=det_rng, context=highctidh_context) 
+    >>> highctidh_1024_priv_key = ctidh1024.generate_secret_key(rng=det_rng, context=highctidh_context)
     """
     assert len(seed) >= 32, "deterministic seed should be at least 256 bits"
     context_state = {}
@@ -270,8 +259,7 @@ def highctidh_deterministic_rng(seed: bytes):
         a function suitable for use with the highctidh determininstic *rng*
         parameter.
 
-        >>> highctidh_drng_seed = bytes.fromhex('163d228fd8182bdb0e259fbf0ed5a776b47126ba4d61d774cce87f6546f8d677')
-        >>> highctidh_context = 1
+        >>> from reunion.__vectors__ import highctidh_context, highctidh_drng_seed
         >>> det_rng = highctidh_deterministic_rng(highctidh_drng_seed)
         >>> highctidh_1024_priv_key = ctidh1024.generate_secret_key(rng=det_rng, context=highctidh_context) 
         """
