@@ -19,7 +19,6 @@ from typing import Dict, List
 from reunion.primitives import (
     x25519,
     ctidh1024,
-    highctidh_deterministic_rng,
     aead_encrypt,
     aead_decrypt,
     argon2i,
@@ -28,6 +27,7 @@ from reunion.primitives import (
     prp_decrypt,
     unelligator,
     generate_hidden_key_pair,
+    generate_ctidh_key_pair,
     Hash,
 )
 
@@ -209,10 +209,7 @@ class ReunionSession(object):
         self.dh_sk: bytes = dh_sk_bytes
 
         # Step2b: esk Aβ ∈ Z, public key epk Aβ = esk Aβ · P ∈ E(Fp)
-        rng = None
-        rng = highctidh_deterministic_rng(ctidh_seed)
-        self.csidh_sk = ctidh1024.generate_secret_key(rng=rng, context=1)  # fixme use seed
-        self.csidh_pk: bytes = ctidh1024.derive_public_key(self.csidh_sk)
+        self.csidh_pk, self.csidh_sk = generate_ctidh_key_pair(ctidh_seed)
 
         # Step 3: salt ← SharedRandom∥EpochID.
         # Setting the salt, or context, is the responsibility of the

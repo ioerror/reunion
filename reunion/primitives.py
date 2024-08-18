@@ -160,6 +160,26 @@ def generate_hidden_key_pair(seed: bytes) -> bytes:
     """
     return monocypher.elligator_key_pair(seed)
 
+def generate_ctidh_key_pair(seed: bytes) -> (object, object):
+    """
+    *generate_hidden_key_pair* takes a 32 byte object known as *seed* and
+    returns a two-tuple consisting of a bytes object containing a CTIDH public
+    key, and the corresponding bytes object for the respective CTIDH secret key.
+
+    FIXME: it would be nice to upstream this function (and the CSPRNG it uses,
+    defined later in this file) to the highctidh library.
+
+    >>> pk, sk = generate_ctidh_key_pair(seed=b'A'*32)
+    >>> bytes(pk).hex()
+    'a0e897b81374cc17aa917637cda97a56377c9b7bdbe86a53a6f01ce35a0366684568e7de4e38000214a2600ac6a9d07b2379ccccdf0c7ca94ff1288eeb06347101be8cabd24543315eb1d00596d05ebfcde4f13e076bc30635db8aa249b55c992ecb24f9ba128a90b8b1d93420ca8f6454572d4c3b492027b942fb45d1e5a20e'
+    >>> bytes(sk).hex()
+    '01fffd00ff000000ff03ff00fd00ff00fe00000000ffff0100ffff01ff0200ff0100ffff01010001fffffe0001020001010000ff03000100ff00ff0000fd0000fe0003010100ff0302000000ff000000fe000002010001ffff00000000fe03000001ff0001fe010000010000ff00ff0100ffff00010101000000000000000100ff00'
+    """
+    rng = highctidh_deterministic_rng(seed)
+    sk = ctidh1024.generate_secret_key(rng=rng, context=1)
+    pk = ctidh1024.derive_public_key(sk)
+    return pk, sk
+
 
 def prp_encrypt(key: bytes, plaintext: bytes):
     """
