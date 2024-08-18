@@ -105,6 +105,8 @@ ctidh_key_pair_seed: bytes = bytes.fromhex('414141414141414141414141414141414141
 ctidh_key_pair_seed_pk: bytes = bytes.fromhex('a0e897b81374cc17aa917637cda97a56377c9b7bdbe86a53a6f01ce35a0366684568e7de4e38000214a2600ac6a9d07b2379ccccdf0c7ca94ff1288eeb06347101be8cabd24543315eb1d00596d05ebfcde4f13e076bc30635db8aa249b55c992ecb24f9ba128a90b8b1d93420ca8f6454572d4c3b492027b942fb45d1e5a20e')
 ctidh_key_pair_seed_sk: bytes = bytes.fromhex('01fffd00ff000000ff03ff00fd00ff00fe00000000ffff0100ffff01ff0200ff0100ffff01010001fffffe0001020001010000ff03000100ff00ff0000fd0000fe0003010100ff0302000000ff000000fe000002010001ffff00000000fe03000001ff0001fe010000010000ff00ff0100ffff00010101000000000000000100ff00')
 
+t1_empty_id: bytes = bytes.fromhex('786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419')
+
 ReunionSession_A_msg: bytes = "Mr. Watson — Come here — I want to see you.".encode()
 ReunionSession_B_msg: bytes = """\
 when a man gives his order to produce a definite result and stands by that

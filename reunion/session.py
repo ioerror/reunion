@@ -57,6 +57,25 @@ class T1(bytes):
 
     >>> T1() # doctest: +ELLIPSIS
     <T1:...>
+    >>> from reunion.__vectors__ import ReunionSession_passphrase
+    >>> from reunion.__vectors__ import ReunionSession_A_msg
+    >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+    >>> T1 = ReunionSession_a.t1
+    >>> alpha = T1.alpha
+    >>> type(alpha) == bytes
+    True
+    >>> len(alpha) == T1.LEN_ALPHA
+    True
+    >>> beta = T1.beta
+    >>> type(beta) == bytes
+    True
+    >>> len(beta) == T1.LEN_BETA
+    True
+    >>> gamma = T1.gamma
+    >>> type(beta) == bytes
+    True
+    >>> len(gamma) == T1.LEN_GAMMA
+    True
     """
 
     LEN_ALPHA = 32
@@ -68,9 +87,15 @@ class T1(bytes):
         """
         Returns *T1.LEN_ALPHA* byte slice
 
-        >>> t1 = T1()
-        >>> t1.alpha
-        b''
+        >>> from reunion.__vectors__ import ReunionSession_passphrase
+        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        >>> T1 = ReunionSession_a.t1
+        >>> alpha = T1.alpha
+        >>> type(alpha) == bytes
+        True
+        >>> len(alpha) == T1.LEN_ALPHA
+        True
         """
         return self[: self.LEN_ALPHA]
 
@@ -79,9 +104,15 @@ class T1(bytes):
         """
         Returns *T1.LEN_BETA* byte slice
 
-        >>> t1 = T1()
-        >>> t1.beta
-        b''
+        >>> from reunion.__vectors__ import ReunionSession_passphrase
+        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        >>> T1 = ReunionSession_a.t1
+        >>> beta = T1.beta
+        >>> type(beta) == bytes
+        True
+        >>> len(beta) == T1.LEN_BETA
+        True
         """
         return self[self.LEN_ALPHA : self.LEN_ALPHA + self.LEN_BETA]
 
@@ -90,9 +121,15 @@ class T1(bytes):
         """
         Returns *T1.LEN_GAMMA* byte slice
 
-        >>> t1 = T1()
-        >>> t1.gamma
-        b''
+        >>> from reunion.__vectors__ import ReunionSession_passphrase
+        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        >>> T1 = ReunionSession_a.t1
+        >>> gamma = T1.gamma
+        >>> type(gamma) == bytes
+        True
+        >>> len(gamma) == T1.LEN_GAMMA
+        True
         """
         return self[
             self.LEN_ALPHA
@@ -106,9 +143,13 @@ class T1(bytes):
         """
         Returns *T1.LEN_DELTA* byte slice
 
-        >>> t1 = T1()
-        >>> t1.delta
-        b''
+        >>> from reunion.__vectors__ import ReunionSession_passphrase
+        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        >>> T1 = ReunionSession_a.t1
+        >>> delta = T1.delta
+        >>> type(delta) == bytes
+        True
         """
         return self[self.LEN_ALPHA + self.LEN_BETA + self.LEN_GAMMA :]
 
@@ -117,10 +158,10 @@ class T1(bytes):
         """
         Returns a *Hash* of itself as the id.
 
+        >>> from reunion.__vectors__ import t1_empty_id
         >>> t1 = T1()
         >>> t1_id = t1.id
-        >>> expected = '786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419'
-        >>> t1_id.hex() == expected
+        >>> t1_empty_id.hex() == t1_id.hex()
         True
         >>> len(t1_id) == 32
         True
@@ -131,6 +172,8 @@ class T1(bytes):
         """
         *__repr__* returns the type and six bytes of the id encoded as hex.
 
+        >>> T1() # doctest: +ELLIPSIS
+        <T1:...>
         >>> t1 = T1()
         >>> t1.__repr__() # doctest: +ELLIPSIS
         '<T1:...>'
