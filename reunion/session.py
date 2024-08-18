@@ -2,7 +2,7 @@
 This module implements the REUNION cryptographic protocol as described in
 Algorithm 1 of the REUNION paper.
 
->>> assert len(DEFAULT_SALT) == 32
+>>> assert len(DEFAULT_HKDF_SALT) == 32
 """
 
 import os
@@ -29,10 +29,8 @@ from reunion.primitives import (
     unelligator,
     generate_hidden_key_pair,
     Hash,
-    blake2b,
+    DEFAULT_HKDF_SALT,
 )
-
-DEFAULT_SALT = bytes("\0".encode() * 32)
 
 
 class T1(bytes):
@@ -170,7 +168,7 @@ class ReunionSession(object):
         )
 
     @classmethod
-    def create(cls, passphrase: bytes, payload: bytes, salt=DEFAULT_SALT):
+    def create(cls, passphrase: bytes, payload: bytes, salt=DEFAULT_HKDF_SALT):
         """
         This is the typical way to instantiate a ReunionSession object.
         """
