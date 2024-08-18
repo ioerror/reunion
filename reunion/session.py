@@ -29,7 +29,10 @@ from reunion.primitives import (
     unelligator,
     generate_hidden_key_pair,
     Hash,
-    DEFAULT_HKDF_SALT,
+)
+
+from reunion.constants import (
+    DEFAULT_HKDF_SALT
 )
 
 
@@ -149,6 +152,9 @@ class ReunionSession(object):
     Traceback (most recent call last):
     ...
     TypeError: ReunionSession.__init__() missing 9...
+    >>> from reunion.__vectors__ import ReunionSession_passphrase
+    >>> from reunion.__vectors__ import ReunionSession_A_msg
+    >>> from reunion.__vectors__ import ReunionSession_B_msg
     """
 
     @classmethod
