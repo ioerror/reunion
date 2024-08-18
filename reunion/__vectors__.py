@@ -42,6 +42,20 @@ True
 True
 >>> len(h) == 32
 True
+>>> len(ReunionSession_A_msg) == 47
+True
+>>> len(ReunionSession_B_msg) == 439
+True
+>>> len(ReunionSession_passphrase) == 10
+True
+>>> len(ReunionSession_four_party_A_msg) == 9
+True
+>>> len(ReunionSession_four_party_B_msg) == 9
+True
+>>> len(ReunionSession_four_party_C_msg) == 9
+True
+>>> len(ReunionSession_four_party_D_msg) == 9
+True
 """
 
 from reunion.constants import DEFAULT_HKDF_SALT
@@ -71,3 +85,21 @@ pdk1: bytes = bytes.fromhex('2938568958db545bf6a9a9f4b6b0f5567f1b7d45c5357c7221f
 pdk2: bytes = bytes.fromhex('3e237c4afe43755a9a932e02233470ef4f44877341709837ae3acf680c1a301a')
 h: bytes = bytes.fromhex('1ffb4f05cb3e841d44079afbcc51f62edbd7092294edac59846b8519f48c5a45')
 h_preimage: bytes = bytes(b'REUNION is for rendezvous')
+
+
+ReunionSession_A_msg: bytes = "Mr. Watson — Come here — I want to see you.".encode()
+ReunionSession_B_msg: bytes = """\
+when a man gives his order to produce a definite result and stands by that
+order it seems to have the effect of giving him what might be termed a second
+sight which enables him to see right through ordinary problems. What this power
+is I cannot say; all I know is that it exists and it becomes available only
+when a man is in that state of mind in which he knows exactly what he wants and
+is fully determined not to quit until he finds it.""".encode()
+ReunionSession_passphrase: bytes = b"passphrase"
+ReunionSession_passphrase1: bytes = b"passphrase1"
+ReunionSession_passphrase2: bytes = b"passphrase2"
+ReunionSession_four_party_A_msg: bytes = b"a message"
+ReunionSession_four_party_B_msg: bytes = b"b message"
+ReunionSession_four_party_C_msg: bytes = b"c message"
+ReunionSession_four_party_D_msg: bytes = b"d message"
+

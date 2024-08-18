@@ -2,39 +2,25 @@ import os
 import unittest
 
 from reunion.session import ReunionSession
+from reunion.util import get_pairs
 
-
-def get_pairs(items):
-    """
-    Helper function to get all unique pairs from a list of items.
-
-    >>> list(get_pairs("ABCD"))
-    [('A', 'B'), ('A', 'C'), ('A', 'D'), ('B', 'C'), ('B', 'D'), ('C', 'D')]
-    """
-    for i in range(len(items)):
-        for j in range(i + 1, len(items)):
-            yield items[i], items[j]
-
+from reunion.__vectors__ import ReunionSession_passphrase
+from reunion.__vectors__ import ReunionSession_passphrase1
+from reunion.__vectors__ import ReunionSession_passphrase2
+from reunion.__vectors__ import ReunionSession_A_msg
+from reunion.__vectors__ import ReunionSession_B_msg
+from reunion.__vectors__ import ReunionSession_four_party_A_msg
+from reunion.__vectors__ import ReunionSession_four_party_B_msg
+from reunion.__vectors__ import ReunionSession_four_party_C_msg
+from reunion.__vectors__ import ReunionSession_four_party_D_msg
 
 class TestReunionSession(unittest.TestCase):
     def setUp(self):
         pass
 
     def test_internals(self):
-
-        A_msg = "Mr. Watson — Come here — I want to see you.".encode()
-        B_msg = """\
-when a man gives his order to produce a definite result and stands by that
-order it seems to have the effect of giving him what might be termed a second
-sight which enables him to see right through ordinary problems. What this power
-is I cannot say; all I know is that it exists and it becomes available only
-when a man is in that state of mind in which he knows exactly what he wants and
-is fully determined not to quit until he finds it.""".encode()
-
-        passphrase = b"passphrase"
-
-        A = ReunionSession.create(passphrase, A_msg)
-        B = ReunionSession.create(passphrase, B_msg)
+        A = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        B = ReunionSession.create(ReunionSession_passphrase, ReunionSession_B_msg)
 
         A_t2 = A.process_t1(B.t1)
         B_t2 = B.process_t1(A.t1)
@@ -59,8 +45,8 @@ is fully determined not to quit until he finds it.""".encode()
         A_msg_B = B.results[0]
         B_msg_A = A.results[0]
 
-        self.assertEqual(A_msg, A_msg_B)
-        self.assertEqual(B_msg, B_msg_A)
+        self.assertEqual(ReunionSession_A_msg, A_msg_B)
+        self.assertEqual(ReunionSession_B_msg, B_msg_A)
 
     def test_2party(self):
         """
@@ -68,20 +54,8 @@ is fully determined not to quit until he finds it.""".encode()
         functionality. It remains here as a demonstration of the simplest
         pairwise instantiation of the protocol.
         """
-
-        A_msg = "Mr. Watson — Come here — I want to see you.".encode()
-        B_msg = """\
-when a man gives his order to produce a definite result and stands by that
-order it seems to have the effect of giving him what might be termed a second
-sight which enables him to see right through ordinary problems. What this power
-is I cannot say; all I know is that it exists and it becomes available only
-when a man is in that state of mind in which he knows exactly what he wants and
-is fully determined not to quit until he finds it.""".encode()
-
-        passphrase = b"passphrase"
-
-        A = ReunionSession.create(passphrase, A_msg)
-        B = ReunionSession.create(passphrase, B_msg)
+        A = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        B = ReunionSession.create(ReunionSession_passphrase, ReunionSession_B_msg)
 
         A_t2 = A.process_t1(B.t1)
         B_t2 = B.process_t1(A.t1)
@@ -95,8 +69,8 @@ is fully determined not to quit until he finds it.""".encode()
         A_msg_B = B.results[0]
         B_msg_A = A.results[0]
 
-        self.assertEqual(A_msg, A_msg_B)
-        self.assertEqual(B_msg, B_msg_A)
+        self.assertEqual(ReunionSession_A_msg, A_msg_B)
+        self.assertEqual(ReunionSession_B_msg, B_msg_A)
 
     def test_4party_interleaved(self):
         """
@@ -110,18 +84,10 @@ is fully determined not to quit until he finds it.""".encode()
         session).
         """
 
-        A_msg = b"a message"
-        B_msg = b"b message"
-        C_msg = b"c message"
-        D_msg = b"d message"
-
-        passphrase1 = b"passphrase1"
-        passphrase2 = b"passphrase2"
-
-        A = ReunionSession.create(passphrase1, A_msg)
-        B = ReunionSession.create(passphrase1, B_msg)
-        C = ReunionSession.create(passphrase2, C_msg)
-        D = ReunionSession.create(passphrase2, D_msg)
+        A = ReunionSession.create(ReunionSession_passphrase1, ReunionSession_four_party_A_msg)
+        B = ReunionSession.create(ReunionSession_passphrase1, ReunionSession_four_party_B_msg)
+        C = ReunionSession.create(ReunionSession_passphrase2, ReunionSession_four_party_C_msg)
+        D = ReunionSession.create(ReunionSession_passphrase2, ReunionSession_four_party_D_msg)
 
         sessions = (A, B, C, D)
 
@@ -140,10 +106,10 @@ is fully determined not to quit until he finds it.""".encode()
         C_msg_D = D.results[0]
         D_msg_C = C.results[0]
 
-        self.assertEqual(A_msg, A_msg_B)
-        self.assertEqual(B_msg, B_msg_A)
-        self.assertEqual(C_msg, C_msg_D)
-        self.assertEqual(D_msg, D_msg_C)
+        self.assertEqual(ReunionSession_four_party_A_msg, A_msg_B)
+        self.assertEqual(ReunionSession_four_party_B_msg, B_msg_A)
+        self.assertEqual(ReunionSession_four_party_C_msg, C_msg_D)
+        self.assertEqual(ReunionSession_four_party_D_msg, D_msg_C)
         self.assertTrue(all(len(r.results) == 1 for r in sessions))
 
     def test_4party(self):
@@ -158,19 +124,10 @@ is fully determined not to quit until he finds it.""".encode()
         """
 
         # Phase 0: setup
-
-        A_msg = b"a message"
-        B_msg = b"b message"
-        C_msg = b"c message"
-        D_msg = b"d message"
-
-        passphrase1 = b"passphrase1"
-        passphrase2 = b"passphrase2"
-
-        A = ReunionSession.create(passphrase1, A_msg)
-        B = ReunionSession.create(passphrase1, B_msg)
-        C = ReunionSession.create(passphrase2, C_msg)
-        D = ReunionSession.create(passphrase2, D_msg)
+        A = ReunionSession.create(ReunionSession_passphrase1, ReunionSession_four_party_A_msg)
+        B = ReunionSession.create(ReunionSession_passphrase1, ReunionSession_four_party_B_msg)
+        C = ReunionSession.create(ReunionSession_passphrase2, ReunionSession_four_party_C_msg)
+        D = ReunionSession.create(ReunionSession_passphrase2, ReunionSession_four_party_D_msg)
 
         Rs = (A, B, C, D)
 
@@ -198,14 +155,12 @@ is fully determined not to quit until he finds it.""".encode()
         C_msg_D = D.results[0]
         D_msg_C = C.results[0]
 
-        self.assertEqual(A_msg, A_msg_B)
-        self.assertEqual(B_msg, B_msg_A)
-        self.assertEqual(C_msg, C_msg_D)
-        self.assertEqual(D_msg, D_msg_C)
+        self.assertEqual(ReunionSession_four_party_A_msg, A_msg_B)
+        self.assertEqual(ReunionSession_four_party_B_msg, B_msg_A)
+        self.assertEqual(ReunionSession_four_party_C_msg, C_msg_D)
+        self.assertEqual(ReunionSession_four_party_D_msg, D_msg_C)
         self.assertTrue(all(len(r.results) == 1 for r in Rs))
 
 
 if __name__ == "__main__":
     unittest.main()
-    # import doctest
-    # doctest.testmod(verbose=True)
