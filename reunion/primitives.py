@@ -16,6 +16,9 @@ def Hash(msg: bytes) -> bytes:
     *Hash* takes *msg* and returns 32 bytes of the *blake2b* digest of the
     message as bytes.
 
+    note: Python's *blake2b* is blake2b 512 bit and we use only the last 256
+    bits of the hash digest.
+
     >>> from reunion.__vectors__ import h, h_preimage
     >>> _hash = Hash(h_preimage)
     >>> len(_hash) == 32
@@ -86,6 +89,8 @@ def aead_encrypt(key: bytes, plaintext: bytes, ad: bytes) -> bytes:
     *aead_encrypt* takes *key*, *msg*, *ad* as bytes and returns *mac* and *ct*
     bytes objects.
 
+    XChaCha20 and Poly1305 (RFC 8439)
+
     >>> from reunion.__vectors__ import aead_ad, aead_key, aead_pt, aead_ct
     >>> _aead_ct = aead_encrypt(aead_key, aead_pt, aead_ad)
     >>> aead_ct == _aead_ct
@@ -96,8 +101,11 @@ def aead_encrypt(key: bytes, plaintext: bytes, ad: bytes) -> bytes:
 
 def aead_decrypt(key: bytes, ciphertext: bytes, ad: bytes) -> bytes:
     """
+
     *aead_decrypt* takes *key*, *ciphertext*, *ad* as bytes and returns
     *plaintext* as bytes.
+
+    XChaCha20 and Poly1305 (RFC 8439)
 
     >>> from reunion.__vectors__ import aead_ad, aead_key, aead_pt, aead_ct
     >>> _aead_pt = aead_decrypt(aead_key, aead_ct, aead_ad)

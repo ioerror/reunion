@@ -142,19 +142,30 @@ class T1(bytes):
 
 
 class ReunionSession(object):
-
     """
     Phases 0 and 1 are implemented in this object directly, while 2, 3, and 4
     are implemented in the Peer object which ReunionSession instantiates for
     each new t1.
 
-    >>> ReunionSession() # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    ...
-    TypeError: ReunionSession.__init__() missing 9...
     >>> from reunion.__vectors__ import ReunionSession_passphrase
     >>> from reunion.__vectors__ import ReunionSession_A_msg
     >>> from reunion.__vectors__ import ReunionSession_B_msg
+    >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+    >>> ReunionSession_b = ReunionSession.create(ReunionSession_passphrase, ReunionSession_B_msg)
+    >>> A_t2 = ReunionSession_a.process_t1(ReunionSession_b.t1)
+    >>> B_t2 = ReunionSession_b.process_t1(ReunionSession_a.t1)
+    >>> A_t3, is_dummy_A = ReunionSession_a.process_t2(ReunionSession_b.t1.id, B_t2)
+    >>> B_t3, is_dummy_B = ReunionSession_b.process_t2(ReunionSession_a.t1.id, A_t2)
+    >>> is_dummy_A == False
+    True
+    >>> is_dummy_B == False
+    True
+    >>> B_msg_A = ReunionSession_a.process_t3(ReunionSession_b.t1.id, B_t3)
+    >>> A_msg_B = ReunionSession_b.process_t3(ReunionSession_a.t1.id, A_t3)
+    >>> ReunionSession_A_msg == A_msg_B
+    True
+    >>> ReunionSession_B_msg == B_msg_A
+    True
     """
 
     @classmethod
@@ -163,6 +174,14 @@ class ReunionSession(object):
         All of the RNG access is consolidated here in a class method, so that
         everything else in the ReunionSession and Peer classes (except "create"
         which calls this) can be sans IO.
+
+        >>> from reunion.__vectors__ import ReunionSession_passphrase
+        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> from reunion.session import ReunionSession
+        >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        >>> ReunionSession_a_keys = ReunionSession_a.keygen()
+        >>> ReunionSession_a_keys.keys()
+        dict_keys(['dh_seed', 'ctidh_seed', 'gamma_seed', 'delta_seed', 'dummy_seed', 'tweak'])
         """
         return dict(
             dh_seed=Hash(os.urandom(32)),
@@ -177,6 +196,13 @@ class ReunionSession(object):
     def create(cls, passphrase: bytes, payload: bytes, salt=DEFAULT_HKDF_SALT):
         """
         This is the typical way to instantiate a ReunionSession object.
+
+        >>> from reunion.__vectors__ import ReunionSession_passphrase
+        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> from reunion.session import ReunionSession
+        >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        >>> type(ReunionSession_a)
+        <class 'reunion.session.ReunionSession'>
         """
         return cls(
             payload=payload,
@@ -254,6 +280,17 @@ class ReunionSession(object):
     def process_t1(self, t1: bytes):
         # Step 14: for each new T1Bi do ▷ Phase 2: Process T1; transmit T2
         # implementation of steps 14 to 22 is in Peer.__init__
+        """
+        Process T1 message *t1* from respective peers.
+
+        >>> from reunion.__vectors__ import ReunionSession_passphrase
+        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> from reunion.__vectors__ import ReunionSession_B_msg
+        >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        >>> ReunionSession_b = ReunionSession.create(ReunionSession_passphrase, ReunionSession_B_msg)
+        >>> A_t2 = ReunionSession_a.process_t1(ReunionSession_b.t1)
+        >>> B_t2 = ReunionSession_b.process_t1(ReunionSession_a.t1)
+        """
         if t1 == self.t1:
             assert (
                 False
@@ -272,6 +309,24 @@ class ReunionSession(object):
     def process_t2(self, t1_id: bytes, t2: bytes):
         # Step 25: for each new T2Bi do ▷ Phase 3: Process T2, transmit T3
         # implementation of steps 25 to 33 is in Peer.process_t2
+        """
+        Process T2 message *t2* from respective peers keyed by *t1_id*.
+
+        >>> from reunion.__vectors__ import ReunionSession_passphrase
+        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> from reunion.__vectors__ import ReunionSession_B_msg
+        >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        >>> ReunionSession_b = ReunionSession.create(ReunionSession_passphrase, ReunionSession_B_msg)
+        >>> A_t2 = ReunionSession_a.process_t1(ReunionSession_b.t1)
+        >>> B_t2 = ReunionSession_b.process_t1(ReunionSession_a.t1)
+        >>> A_t3, is_dummy_A = ReunionSession_a.process_t2(ReunionSession_b.t1.id, B_t2)
+        >>> B_t3, is_dummy_B = ReunionSession_b.process_t2(ReunionSession_a.t1.id, A_t2)
+        >>> is_dummy_A == False
+        True
+        >>> is_dummy_B == False
+        True
+        """
+
         if t1_id in self.peers:
             return self.peers[t1_id].process_t2(t2)
         else:
@@ -279,6 +334,31 @@ class ReunionSession(object):
 
     def process_t3(self, t1_id: bytes, t3: bytes):
         # Step 36: for each new T3Bi do ▷ Phase 4: Process T3; decrypt δ
+        """
+        Process T3 message *t3* from respective peers keyed by *t1_id*. For
+        successful rendezvous, the respective peer's message is returned as a
+        bytes object or *None* is returned.
+
+        >>> from reunion.__vectors__ import ReunionSession_passphrase
+        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> from reunion.__vectors__ import ReunionSession_B_msg
+        >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
+        >>> ReunionSession_b = ReunionSession.create(ReunionSession_passphrase, ReunionSession_B_msg)
+        >>> A_t2 = ReunionSession_a.process_t1(ReunionSession_b.t1)
+        >>> B_t2 = ReunionSession_b.process_t1(ReunionSession_a.t1)
+        >>> A_t3, is_dummy_A = ReunionSession_a.process_t2(ReunionSession_b.t1.id, B_t2)
+        >>> B_t3, is_dummy_B = ReunionSession_b.process_t2(ReunionSession_a.t1.id, A_t2)
+        >>> is_dummy_A == False
+        True
+        >>> is_dummy_B == False
+        True
+        >>> B_msg_A = ReunionSession_a.process_t3(ReunionSession_b.t1.id, B_t3)
+        >>> A_msg_B = ReunionSession_b.process_t3(ReunionSession_a.t1.id, A_t3)
+        >>> ReunionSession_A_msg == A_msg_B
+        True
+        >>> ReunionSession_B_msg == B_msg_A
+        True
+        """
         if t1_id in self.peers:
             return self.peers[t1_id].process_t3(t3)
 
