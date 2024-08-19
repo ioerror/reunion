@@ -55,8 +55,6 @@ class T1(bytes):
     cryptable by a valid T3.
 
 
-    >>> T1() # doctest: +ELLIPSIS
-    <T1:...>
     >>> from reunion.__vectors__ import ReunionSession_passphrase
     >>> from reunion.__vectors__ import ReunionSession_A_msg
     >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
@@ -85,7 +83,13 @@ class T1(bytes):
     @property
     def alpha(self):
         """
-        Returns *T1.LEN_ALPHA* byte slice
+        α is an Elligator-encoded Curve25519 public key, encrypted by a PRP using
+        a symmetric key derived as described in Step 8. The encryption and
+        decryption of α is unauthenticated, i.e. does not provide a validity check.
+        The elligator encoding ensures that plaintext is indistinguishable from
+        random bytes and every sequence of random bytes maps to a valid public key.
+
+        Returns *T1.LEN_ALPHA* byte slice of length 32.
 
         >>> from reunion.__vectors__ import ReunionSession_passphrase
         >>> from reunion.__vectors__ import ReunionSession_A_msg
@@ -102,7 +106,10 @@ class T1(bytes):
     @property
     def beta(self):
         """
-        Returns *T1.LEN_BETA* byte slice
+        β is a CSIDH public key. CSIDH is provided by highctidh and CTIDH1024
+        is used.
+
+        Returns *T1.LEN_BETA* byte slice of length 128.
 
         >>> from reunion.__vectors__ import ReunionSession_passphrase
         >>> from reunion.__vectors__ import ReunionSession_A_msg
@@ -119,7 +126,11 @@ class T1(bytes):
     @property
     def gamma(self):
         """
-        Returns *T1.LEN_GAMMA* byte slice
+        γ is the MAC of an AEAD encryption of an empty string using a random
+        key which is revealed by the T2. AEAD is provided by monocypher
+        and XChaCha20Poly1305 is used.
+
+        Returns *T1.LEN_GAMMA* byte slice of length 16.
 
         >>> from reunion.__vectors__ import ReunionSession_passphrase
         >>> from reunion.__vectors__ import ReunionSession_A_msg
@@ -141,7 +152,11 @@ class T1(bytes):
     @property
     def delta(self):
         """
-        Returns *T1.LEN_DELTA* byte slice
+        δ is an AEAD ciphertext containing the message payload which is only de-
+        cryptable by a valid T3. AEAD is provided by monocypher and
+        XChaCha20Poly1305 is used.
+
+        Returns *T1.LEN_DELTA* byte slice of variable length.
 
         >>> from reunion.__vectors__ import ReunionSession_passphrase
         >>> from reunion.__vectors__ import ReunionSession_A_msg
@@ -156,7 +171,7 @@ class T1(bytes):
     @property
     def id(self):
         """
-        Returns a *Hash* of itself as the id.
+        Returns a *Hash* of itself as 32 bytes.
 
         >>> from reunion.__vectors__ import t1_empty_id
         >>> t1 = T1()
@@ -247,6 +262,8 @@ class ReunionSession(object):
         >>> type(ReunionSession_a)
         <class 'reunion.session.ReunionSession'>
         """
+        # XXX The above tests should construct a ReunionSession that sets all
+        # seeds and verifies the values of the returned fields on the object.
         return cls(
             payload=payload,
             salt=salt,
