@@ -15,6 +15,8 @@ information such as addresses or public keys.
 
 ## Status of `reunion` implementing REUNION
 
+[![status-badge](https://ci.codeberg.org/api/badges/13701/status.svg)](https://ci.codeberg.org/repos/13701)
+
 This is pre-release software, under active development.
 
 # How to use REUNION?

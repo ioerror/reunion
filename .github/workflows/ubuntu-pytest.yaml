@@ -1,0 +1,23 @@
+name: Run pytest
+
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Ubuntu packages for build dependencies
+      run: sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends build-essential python3 python3-venv
+
+    - name: Install Python virtual environment and Python dependencies
+      run: python3 -m venv venv && source venv/bin/activate && pip install pytest && pip install -e .
+
+    - name: Run pytest in Python virtual environment
+      run: |
+        source venv/bin/activate
+        pytest -vvv
