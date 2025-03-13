@@ -127,5 +127,12 @@ Run the test suite with `pytest`:
 
 Generate a Debian package for local use:
 ```
-fakeroot debian/rules build binary
+make deb
+```
+
+### Running the local Woodpecker continuous integration
+
+Install `woodpecker-cli` to run the pipeline locally:
+```
+woodpecker-cli exec .woodpecker.yml 
 ```

@@ -1,0 +1,38 @@
+.TH "REUNION-ON-AN-ETHERNET" "1" "2025-03-14" "1.0.2" "reunion-on-an-ethernet Manual"
+.SH NAME
+reunion-on-an-ethernet \- REUNION on an ethernet using multicast
+.SH SYNOPSIS
+.B reunion-on-an-ethernet
+[OPTIONS]
+.SH DESCRIPTION
+.PP
+    REUNION on an ethernet using multicast
+.PP
+    If you run it with no arguments, you will be prompted for a passphrase and
+    message.
+    
+.SH OPTIONS
+.TP
+\fB\-\-version\fP
+Show the version and exit.
+.TP
+\fB\-I,\fP \-\-interval INTEGER
+Interval at which to start new sessions  [default: 60]
+.TP
+\fB\-\-multicast\-group\fP TEXT
+[default: 224.3.29.71]
+.TP
+\fB\-\-bind\-addr\fP TEXT
+[default: 0.0.0.0]
+.TP
+\fB\-\-port\fP INTEGER
+[default: 9005]
+.TP
+\fB\-\-reveal\-once\fP
+Only reveal the message to the first person with the correct passphrase
+.TP
+\fB\-\-passphrase\fP TEXT
+The passphrase
+.TP
+\fB\-\-message\fP TEXT
+The message
