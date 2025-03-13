@@ -1,5 +1,5 @@
 steps:
-  - name: debian-pytest
+  - name: debpytest
     image: debian:sid
     commands:
       - export CI=true
@@ -7,7 +7,8 @@ steps:
       - PATH=$PATH:~/.local/bin
       - export WORKDIR=`pwd`
       - apt update
-      - apt install -y --no-install-recommends build-essential python3 python3-venv
+      - apt install -y --no-install-recommends build-essential python3 python3-venv flit dh-python pybuild-plugin-pyproject debhelper git python3-setuptools
+      - make deb
       - python3 -m venv venv && . ./venv/bin/activate && pip install pytest && pip install -e .
       - . ./venv/bin/activate && pytest -vvv
     when:

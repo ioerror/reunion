@@ -2,13 +2,16 @@ Source: reunion
 Maintainer: REUNION Authors <git@rendezvous.contact>
 Section: python
 Priority: optional
-Build-Depends: dh-python, python3-setuptools, python3-all, debhelper (>= 9)
+Build-Depends: dh-python, python3-setuptools, python3,
+  pybuild-plugin-pyproject, flit, debhelper (>= 9)
 Standards-Version: 3.9.6
 Homepage: https://codeberg.org/rendezvous/reunion
 
 Package: python3-reunion
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}
+Depends: ${misc:Depends}, ${python3:Depends}, python3-click,
+  python3-cryptography, python3-hkdf, python3-pymonocypher, python3-highctidh
+Recommends: python3-flask, python3-requests, python3-stem
 Description: REUNION is for rendezvous
  This is the reference implementation of the REUNION cryptographic redezvous
  protocol.
