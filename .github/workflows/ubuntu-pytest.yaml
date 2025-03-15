@@ -1,4 +1,4 @@
-name: Run pytest
+name: Run pytest and build Debian package
 
 on:
   push:
@@ -6,6 +6,18 @@ on:
     branches: [ "main" ]
 
 jobs:
+  deb:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Ubuntu packages for build dependencies
+      run: sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends build-essential python3 python3-venv flit dh-python pybuild-plugin-pyproject debhelper git python3-setuptools python3-hkdf
+
+    - name: Build Debian package
+      run: |
+        make deb
+
   pytest:
     runs-on: ubuntu-latest
     steps:
@@ -21,3 +33,4 @@ jobs:
       run: |
         source venv/bin/activate
         pytest -vvv
+

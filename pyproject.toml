@@ -1,16 +1,58 @@
 [project]
 name = "reunion"
-version = "1.0.1"
-dynamic = ["description", "readme", "requires-python", "license", "authors",
-           "keywords", "classifiers", "urls", "scripts", "gui-scripts",
-            "entry-points", "dependencies", "optional-dependencies"]
+authors = [ { name = "REUNION Authors" }, { email = "git@rendezvous.contact" } ]
+description = "REUNION is for rendezvous"
+license = { text = "GPLv3" }
+readme = "README.md"
+keywords = [ "post-quantum", "REUNION", "rendezvous", "encryption", "meeting-people-is-easy" ]
+requires-python = ">=3.9"
+dynamic = ["version"]
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Operating System :: OS Independent",
+]
+
+dependencies = [
+  "highctidh",
+  "pymonocypher>=4.0.2.4",
+  "ifaddr",
+  "click>=8.0.0",
+  "hkdf",
+  "cryptography>=3.1.1",
+  "flask[async]>=2.1.2",
+  "stem",
+  "requests",
+  "PySocks",
+  "toml"
+]
+
+[tool.flit.external-data]
+directory = "data"
+
+[project.urls]
+homepage = "https://rendezvous.contact"
+repository = "https://codeberg.org/rendezvous/reunion"
+
+[project.scripts]
+reunion = "reunion.cli:main"
+reunion-client = "reunion.client:main"
+reunion-server = "reunion.server:main"
+reunion-on-an-ethernet = "reunion.multicast:main"
+
 [build-system]
-requires = ["setuptools", "wheel", "toml"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core"]
+build-backend = "flit_core.buildapi"
+
 [testenv]
 commands = ["pytest"]
+
 [tool.setuptools]
 packages = ["reunion"]
+
+[tool.setuptools.dynamic]
+version = {attr = "reunion.__version__.__version__"}
 
 [tool.pytest.ini_options]
 addopts = "-v --doctest-modules"
