@@ -1,18 +1,18 @@
 import os
 import unittest
 
-from reunion.constants import DEFAULT_AEAD_NONCE, DEFAULT_ARGON_SALT, DEFAULT_HKDF_SALT
-from reunion.primitives import aead_decrypt, aead_encrypt, argon2i
-from reunion.primitives import generate_hidden_key_pair, Hash
-from reunion.primitives import highctidh_deterministic_rng, hkdf, prp_decrypt
-from reunion.primitives import prp_encrypt, unelligator, x25519
-from reunion.__vectors__ import esk_a_seed, esk_b_seed
-from reunion.__vectors__ import epk_a, epk_b
-from reunion.__vectors__ import esk_a, esk_b
-from reunion.__vectors__ import pk_a, pk_b
-from reunion.__vectors__ import aead_key, aead_pt, aead_ad, aead_ct
-from reunion.__vectors__ import prp_key, prp_pt, prp_ct
-from reunion.__vectors__ import a1, a2, pdk1, pdk2, h, h_preimage
+from rendez.vous.reunion.constants import DEFAULT_AEAD_NONCE, DEFAULT_ARGON_SALT, DEFAULT_HKDF_SALT
+from rendez.vous.reunion.primitives import aead_decrypt, aead_encrypt, argon2i
+from rendez.vous.reunion.primitives import generate_hidden_key_pair, Hash
+from rendez.vous.reunion.primitives import highctidh_deterministic_rng, hkdf, prp_decrypt
+from rendez.vous.reunion.primitives import prp_encrypt, unelligator, x25519
+from rendez.vous.reunion.__vectors__ import esk_a_seed, esk_b_seed
+from rendez.vous.reunion.__vectors__ import epk_a, epk_b
+from rendez.vous.reunion.__vectors__ import esk_a, esk_b
+from rendez.vous.reunion.__vectors__ import pk_a, pk_b
+from rendez.vous.reunion.__vectors__ import aead_key, aead_pt, aead_ad, aead_ct
+from rendez.vous.reunion.__vectors__ import prp_key, prp_pt, prp_ct
+from rendez.vous.reunion.__vectors__ import a1, a2, pdk1, pdk2, h, h_preimage
 
 
 class TestPrimitivesStaticVectors(unittest.TestCase):

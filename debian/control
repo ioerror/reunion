@@ -1,4 +1,4 @@
-Source: reunion
+Source: rendez
 Maintainer: REUNION Authors <git@rendezvous.contact>
 Section: python
 Priority: optional
@@ -7,7 +7,7 @@ Build-Depends: dh-python, python3-setuptools, python3,
 Standards-Version: 3.9.6
 Homepage: https://codeberg.org/rendezvous/reunion
 
-Package: python3-reunion
+Package: python3-rendez
 Architecture: all
 Depends: ${misc:Depends}, ${python3:Depends}, python3-click,
   python3-cryptography, python3-hkdf, python3-pymonocypher, python3-highctidh

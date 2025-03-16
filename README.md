@@ -79,8 +79,9 @@ $ reunion-client --msg 'hello world' --passphrase 'I am a jelly donut'
 
 ## ReunionSession API
 
-The `reunion` library provides an API for Python developers to integrate the
-REUNION protcol into their applications.
+The `reunion` module provides an API for Python developers to integrate the
+REUNION protocol into their applications. Import it from the `rendez` package
+with: `from rendez.vous import reunion` to use it.
 
 The `reunion.session` python module provides a sans IO implementation of the
 cryptographic protocol which applications can use. So far, `reunion.multicast`
@@ -109,8 +110,8 @@ is the only user of this module.
 
 ### Setting up REUNION for development
 
-We recommend using a Python virtual environment and installing the library with
-`pip` in editable mode:
+We recommend using a Python virtual environment and installing the `rendez`
+package with `pip` in editable mode:
 ```
 python -m venv venv
 source venv/bin/activate
@@ -125,10 +126,12 @@ Run the test suite with `pytest`:
 
 ### Building a Debian package
 
-Generate a Debian package for local use:
+Generate a Debian package (e.g.: `python3-rendez`) for local use:
 ```
 make deb
 ```
+
+This is a deterministic reproducible build.
 
 ### Running the local Woodpecker continuous integration
 

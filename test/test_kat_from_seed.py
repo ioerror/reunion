@@ -1,8 +1,8 @@
 import os
 import unittest
 from dataclasses import dataclass, asdict
-from reunion.primitives import Hash
-from reunion.session import ReunionSession, DEFAULT_HKDF_SALT
+from rendez.vous.reunion.primitives import Hash
+from rendez.vous.reunion.session import ReunionSession, DEFAULT_HKDF_SALT
 
 
 def DeterministicSession(
@@ -30,8 +30,8 @@ class SessionKAT:
     Ideally the actual KATs could be read from a data file rather than this
     docstring, and could also include serialized secret keys (rather than just
     their seed as it is here now) so that other implementations could load them
-    from the data file and test reunion compatibility without necessarily
-    needing to be completely seed-compatible when generating the keys.
+    from the data file and reunion compatibility without necessarily needing to
+    be completely seed-compatible when generating the keys.
 
     >>> SessionKAT.generate_from_seed(bytes.fromhex("1234"))
           seed: 1234

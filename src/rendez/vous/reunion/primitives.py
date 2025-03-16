@@ -6,8 +6,8 @@ from highctidh import ctidh as _ctidh
 import monocypher
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-from reunion.constants import DEFAULT_AEAD_NONCE, DEFAULT_ARGON_SALT
-from reunion.constants import DEFAULT_HKDF_SALT, DEFAULT_CTIDH_SIZE
+from rendez.vous.reunion.constants import DEFAULT_AEAD_NONCE, DEFAULT_ARGON_SALT
+from rendez.vous.reunion.constants import DEFAULT_HKDF_SALT, DEFAULT_CTIDH_SIZE
 
 ctidh1024 = _ctidh(DEFAULT_CTIDH_SIZE)
 
@@ -19,7 +19,7 @@ def Hash(msg: bytes) -> bytes:
     note: Python's *blake2b* is blake2b 512 bit and we use only the last 256
     bits of the hash digest.
 
-    >>> from reunion.__vectors__ import h, h_preimage
+    >>> from rendez.vous.reunion.__vectors__ import h, h_preimage
     >>> _hash = Hash(h_preimage)
     >>> len(_hash) == 32
     True
@@ -38,7 +38,7 @@ def argon2i(password: bytes, salt: bytes, _iterations: int = 3,
 
     REUNION does not negotiate the other parameters to argon2i.
 
-    >>> from reunion.__vectors__ import argon2i_password, argon2i_salt, argon2i_hash
+    >>> from rendez.vous.reunion.__vectors__ import argon2i_password, argon2i_salt, argon2i_hash
     >>> _argon2i_hash = argon2i(argon2i_password, argon2i_salt)
     >>> argon2i_hash == _argon2i_hash
     True
@@ -57,7 +57,7 @@ def hkdf(key: bytes, salt: bytes, hash=_blake2b):
     """
     *hkdf* wraps a standard HKDF and uses *blake2b* by default.
 
-    >>> from reunion.__vectors__ import hkdf_salt, hkdf_key, hkdf_pdk, hkdf_pdk
+    >>> from rendez.vous.reunion.__vectors__ import hkdf_salt, hkdf_key, hkdf_pdk, hkdf_pdk
     >>> _hkdf_result = hkdf(hkdf_key, hkdf_salt)
     >>> _hkdf_pdk = _hkdf_result.expand(b'', 32)
     >>> hkdf_pdk == _hkdf_pdk
@@ -72,7 +72,7 @@ def x25519(sk: bytes, pk: bytes) -> bytes:
     already be transformed from an elligator representation to a normal x25519
     public key with *unelligator*.
 
-    >>> from reunion.__vectors__ import x25519_sk_seed_a, x25519_sk_seed_b
+    >>> from rendez.vous.reunion.__vectors__ import x25519_sk_seed_a, x25519_sk_seed_b
     >>> epk_25519_a, sk_25519_a = generate_hidden_key_pair(x25519_sk_seed_a)
     >>> epk_25519_b, sk_25519_b = generate_hidden_key_pair(x25519_sk_seed_b)
     >>> pk_25519_a = unelligator(epk_25519_a)
@@ -91,7 +91,7 @@ def aead_encrypt(key: bytes, plaintext: bytes, ad: bytes) -> bytes:
 
     XChaCha20 and Poly1305 (RFC 8439)
 
-    >>> from reunion.__vectors__ import aead_ad, aead_key, aead_pt, aead_ct
+    >>> from rendez.vous.reunion.__vectors__ import aead_ad, aead_key, aead_pt, aead_ct
     >>> _aead_ct = aead_encrypt(aead_key, aead_pt, aead_ad)
     >>> aead_ct == _aead_ct
     True
@@ -107,7 +107,7 @@ def aead_decrypt(key: bytes, ciphertext: bytes, ad: bytes) -> bytes:
 
     XChaCha20 and Poly1305 (RFC 8439)
 
-    >>> from reunion.__vectors__ import aead_ad, aead_key, aead_pt, aead_ct
+    >>> from rendez.vous.reunion.__vectors__ import aead_ad, aead_key, aead_pt, aead_ct
     >>> _aead_pt = aead_decrypt(aead_key, aead_ct, aead_ad)
     >>> aead_pt == _aead_pt
     True
@@ -122,9 +122,9 @@ def unelligator(hidden: bytes) -> bytes:
     public key encoded with the elligator map; it reverses the map returning a
     bytes object that represents a normal x25519 public key.
 
-    >>> from reunion.__vectors__ import esk_a_seed, esk_b_seed
-    >>> from reunion.__vectors__ import epk_a, epk_b
-    >>> from reunion.__vectors__ import pk_a, pk_b
+    >>> from rendez.vous.reunion.__vectors__ import esk_a_seed, esk_b_seed
+    >>> from rendez.vous.reunion.__vectors__ import epk_a, epk_b
+    >>> from rendez.vous.reunion.__vectors__ import pk_a, pk_b
     >>> esk_a_seed_dt_copy = bytes(a for a in esk_a_seed)
     >>> esk_b_seed_dt_copy = bytes(b for b in esk_b_seed)
     >>> epk_25519_a, sk_25519_a = generate_hidden_key_pair(esk_a_seed_dt_copy)
@@ -149,8 +149,8 @@ def generate_hidden_key_pair(seed: bytes) -> bytes:
     key encoded with the elligator map, and the corresponding bytes object for
     the respective x25519 secret key.
 
-    >>> from reunion.__vectors__ import hidden_key_pair_seed, hidden_key_pair_pk_a
-    >>> from reunion.__vectors__ import hidden_key_pair_sk_a
+    >>> from rendez.vous.reunion.__vectors__ import hidden_key_pair_seed, hidden_key_pair_pk_a
+    >>> from rendez.vous.reunion.__vectors__ import hidden_key_pair_sk_a
     >>> epk_25519_a, sk_25519_a = generate_hidden_key_pair(hidden_key_pair_seed)
     >>> hidden_key_pair_pk_a == epk_25519_a 
     True
@@ -168,9 +168,9 @@ def generate_ctidh_key_pair(seed: bytes) -> (object, object):
     FIXME: it would be nice to upstream this function (and the CSPRNG it uses,
     defined later in this file) to the highctidh library.
 
-    >>> from reunion.__vectors__ import ctidh_key_pair_seed
-    >>> from reunion.__vectors__ import ctidh_key_pair_seed_pk
-    >>> from reunion.__vectors__ import ctidh_key_pair_seed_sk
+    >>> from rendez.vous.reunion.__vectors__ import ctidh_key_pair_seed
+    >>> from rendez.vous.reunion.__vectors__ import ctidh_key_pair_seed_pk
+    >>> from rendez.vous.reunion.__vectors__ import ctidh_key_pair_seed_sk
     >>> pk, sk = generate_ctidh_key_pair(seed=ctidh_key_pair_seed)
     >>> ctidh_key_pair_seed_pk == bytes(pk)
     True
@@ -194,7 +194,7 @@ def prp_encrypt(key: bytes, plaintext: bytes):
     Currently we use two 128 bit blocks of AES as rijndael is not in the
     standard library; it should be replaced with rijndael.
 
-    >>> from reunion.__vectors__ import prp_key, prp_pt, prp_ct
+    >>> from rendez.vous.reunion.__vectors__ import prp_key, prp_pt, prp_ct
     >>> _prp_ct = prp_encrypt(prp_key, prp_pt)
     >>> prp_ct == _prp_ct
     True
@@ -218,7 +218,7 @@ def prp_decrypt(key: bytes, ciphertext: bytes):
     Currently we use two 128 bit blocks of AES as rijndael is not in the
     standard library; it should be replaced with rijndael.
 
-    >>> from reunion.__vectors__ import prp_key, prp_pt, prp_ct
+    >>> from rendez.vous.reunion.__vectors__ import prp_key, prp_pt, prp_ct
     >>> _prp_ct = prp_encrypt(prp_key, prp_pt)
     >>> prp_ct == _prp_ct
     True
@@ -255,7 +255,7 @@ def highctidh_deterministic_rng(seed: bytes):
     It is safe to use the same seed to generate multiple keys if (and only if)
     **distinct** context arguments are passed.
 
-    >>> from reunion.__vectors__ import highctidh_context, highctidh_drng_seed
+    >>> from rendez.vous.reunion.__vectors__ import highctidh_context, highctidh_drng_seed
     >>> det_rng = highctidh_deterministic_rng(highctidh_drng_seed)
     >>> highctidh_1024_priv_key = ctidh1024.generate_secret_key(rng=det_rng, context=highctidh_context)
     """
@@ -267,7 +267,7 @@ def highctidh_deterministic_rng(seed: bytes):
         a function suitable for use with the highctidh determininstic *rng*
         parameter.
 
-        >>> from reunion.__vectors__ import highctidh_context, highctidh_drng_seed
+        >>> from rendez.vous.reunion.__vectors__ import highctidh_context, highctidh_drng_seed
         >>> det_rng = highctidh_deterministic_rng(highctidh_drng_seed)
         >>> highctidh_1024_priv_key = ctidh1024.generate_secret_key(rng=det_rng, context=highctidh_context) 
         """

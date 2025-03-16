@@ -30,8 +30,8 @@ class TestDependencies(unittest.TestCase):
     import time
 
   def test_exports(self):
-    from reunion.primitives import aead_decrypt, aead_encrypt, argon2i
-    from reunion.primitives import generate_hidden_key_pair, Hash
-    from reunion.primitives import highctidh_deterministic_rng, hkdf, prp_decrypt
-    from reunion.primitives import prp_encrypt, unelligator, x25519
+    from rendez.vous.reunion.primitives import aead_decrypt, aead_encrypt, argon2i
+    from rendez.vous.reunion.primitives import generate_hidden_key_pair, Hash
+    from rendez.vous.reunion.primitives import highctidh_deterministic_rng, hkdf, prp_decrypt
+    from rendez.vous.reunion.primitives import prp_encrypt, unelligator, x25519
 

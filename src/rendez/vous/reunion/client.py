@@ -9,12 +9,12 @@ REUNION client
 # TODO: add epoch handling.
 # TODO: port the multicast client over here (send_udp_multicast?)
 
-import reunion
-from reunion.primitives import Hash
+from rendez.vous import reunion
+from rendez.vous.reunion.primitives import Hash
 
 # TODO: Hash should have a property specifying byte length
-from reunion.session import ReunionSession, T1
-from reunion.__version__ import __version__
+from rendez.vous.reunion.session import ReunionSession, T1
+from rendez.vous.reunion.__version__ import __version__
 
 # process_t1: should probably case to T1()
 import requests

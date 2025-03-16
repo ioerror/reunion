@@ -1,26 +1,26 @@
 import os
 import unittest
 from dataclasses import dataclass, asdict
-from reunion.primitives import Hash
-from reunion.session import ReunionSession, DEFAULT_HKDF_SALT
-from reunion.__vectors__ import dsession_salt, dsession_passphrase
-from reunion.__vectors__ import dsession_seed_a, dsession_seed_b
-from reunion.__vectors__ import dsession_payload_A, dsession_payload_B
-from reunion.__vectors__ import dsession_seed_a, dsession_seed_b
-from reunion.__vectors__ import dsession_dh_seed_a, dsession_dh_seed_b
-from reunion.__vectors__ import dsession_ctidh_seed_a, dsession_ctidh_seed_b
-from reunion.__vectors__ import dsession_gamma_seed_a, dsession_gamma_seed_b
-from reunion.__vectors__ import dsession_ctidh_seed_sk_a, dsession_ctidh_seed_pk_a
-from reunion.__vectors__ import dsession_ctidh_seed_sk_b, dsession_ctidh_seed_pk_b
-from reunion.__vectors__ import dsession_delta_seed_a, dsession_delta_seed_b
-from reunion.__vectors__ import dsession_dummy_seed_a, dsession_dummy_seed_b
-from reunion.__vectors__ import dsession_tweak_a, dsession_tweak_b
-from reunion.__vectors__ import dsession_AT1, dsession_AT2, dsession_AT3
-from reunion.__vectors__ import dsession_AT1_alpha, dsession_AT1_beta
-from reunion.__vectors__ import dsession_AT1_gamma, dsession_AT1_delta
-from reunion.__vectors__ import dsession_BT1, dsession_BT2, dsession_BT3 
-from reunion.__vectors__ import dsession_BT1_alpha, dsession_BT1_beta
-from reunion.__vectors__ import dsession_BT1_gamma, dsession_BT1_delta
+from rendez.vous.reunion.primitives import Hash
+from rendez.vous.reunion.session import ReunionSession, DEFAULT_HKDF_SALT
+from rendez.vous.reunion.__vectors__ import dsession_salt, dsession_passphrase
+from rendez.vous.reunion.__vectors__ import dsession_seed_a, dsession_seed_b
+from rendez.vous.reunion.__vectors__ import dsession_payload_A, dsession_payload_B
+from rendez.vous.reunion.__vectors__ import dsession_seed_a, dsession_seed_b
+from rendez.vous.reunion.__vectors__ import dsession_dh_seed_a, dsession_dh_seed_b
+from rendez.vous.reunion.__vectors__ import dsession_ctidh_seed_a, dsession_ctidh_seed_b
+from rendez.vous.reunion.__vectors__ import dsession_gamma_seed_a, dsession_gamma_seed_b
+from rendez.vous.reunion.__vectors__ import dsession_ctidh_seed_sk_a, dsession_ctidh_seed_pk_a
+from rendez.vous.reunion.__vectors__ import dsession_ctidh_seed_sk_b, dsession_ctidh_seed_pk_b
+from rendez.vous.reunion.__vectors__ import dsession_delta_seed_a, dsession_delta_seed_b
+from rendez.vous.reunion.__vectors__ import dsession_dummy_seed_a, dsession_dummy_seed_b
+from rendez.vous.reunion.__vectors__ import dsession_tweak_a, dsession_tweak_b
+from rendez.vous.reunion.__vectors__ import dsession_AT1, dsession_AT2, dsession_AT3
+from rendez.vous.reunion.__vectors__ import dsession_AT1_alpha, dsession_AT1_beta
+from rendez.vous.reunion.__vectors__ import dsession_AT1_gamma, dsession_AT1_delta
+from rendez.vous.reunion.__vectors__ import dsession_BT1, dsession_BT2, dsession_BT3
+from rendez.vous.reunion.__vectors__ import dsession_BT1_alpha, dsession_BT1_beta
+from rendez.vous.reunion.__vectors__ import dsession_BT1_gamma, dsession_BT1_delta
 
 def DeterministicSession(
     passphrase: bytes, payload: bytes, seed: bytes, salt=DEFAULT_HKDF_SALT
