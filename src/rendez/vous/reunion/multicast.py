@@ -28,8 +28,8 @@ import time
 import ifaddr
 import click
 
-from reunion.session import ReunionSession, T1
-from reunion.__version__ import __version__
+from rendez.vous.reunion.session import ReunionSession, T1
+from rendez.vous.reunion.__version__ import __version__
 
 
 class UDPListener(object):

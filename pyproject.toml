@@ -1,7 +1,7 @@
 [project]
-name = "reunion"
+name = "rendez"
 authors = [ { name = "REUNION Authors" }, { email = "git@rendezvous.contact" } ]
-description = "REUNION is for rendezvous"
+description = "from rendez.vous import reunion"
 license = { text = "GPLv3" }
 readme = "README.md"
 keywords = [ "post-quantum", "REUNION", "rendezvous", "encryption", "meeting-people-is-easy" ]
@@ -36,10 +36,10 @@ homepage = "https://rendezvous.contact"
 repository = "https://codeberg.org/rendezvous/reunion"
 
 [project.scripts]
-reunion = "reunion.cli:main"
-reunion-client = "reunion.client:main"
-reunion-server = "reunion.server:main"
-reunion-on-an-ethernet = "reunion.multicast:main"
+reunion = "rendez.vous.reunion.cli:main"
+reunion-client = "rendez.vous.reunion.client:main"
+reunion-server = "rendez.vous.reunion.server:main"
+reunion-on-an-ethernet = "rendez.vous.reunion.multicast:main"
 
 [build-system]
 requires = ["flit_core"]
@@ -49,10 +49,10 @@ build-backend = "flit_core.buildapi"
 commands = ["pytest"]
 
 [tool.setuptools]
-packages = ["reunion"]
+packages = ["rendez"]
 
 [tool.setuptools.dynamic]
-version = {attr = "reunion.__version__.__version__"}
+version = {attr = "rendez.vous.reunion.__version__.__version__"}
 
 [tool.pytest.ini_options]
 addopts = "-v --doctest-modules"

@@ -1,18 +1,18 @@
 import os
 import unittest
 
-from reunion.session import ReunionSession
-from reunion.util import get_pairs
+from rendez.vous.reunion.session import ReunionSession
+from rendez.vous.reunion.util import get_pairs
 
-from reunion.__vectors__ import ReunionSession_passphrase
-from reunion.__vectors__ import ReunionSession_passphrase1
-from reunion.__vectors__ import ReunionSession_passphrase2
-from reunion.__vectors__ import ReunionSession_A_msg
-from reunion.__vectors__ import ReunionSession_B_msg
-from reunion.__vectors__ import ReunionSession_four_party_A_msg
-from reunion.__vectors__ import ReunionSession_four_party_B_msg
-from reunion.__vectors__ import ReunionSession_four_party_C_msg
-from reunion.__vectors__ import ReunionSession_four_party_D_msg
+from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase1
+from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase2
+from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
+from rendez.vous.reunion.__vectors__ import ReunionSession_B_msg
+from rendez.vous.reunion.__vectors__ import ReunionSession_four_party_A_msg
+from rendez.vous.reunion.__vectors__ import ReunionSession_four_party_B_msg
+from rendez.vous.reunion.__vectors__ import ReunionSession_four_party_C_msg
+from rendez.vous.reunion.__vectors__ import ReunionSession_four_party_D_msg
 
 class TestReunionSession(unittest.TestCase):
     def setUp(self):

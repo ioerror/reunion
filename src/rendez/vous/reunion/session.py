@@ -16,7 +16,7 @@ from typing import Dict, List
 # rijndael-enc(key, plaintext)/rijndael-dec(key, ciphertext), random number
 # generator function RNG, Elligator encode/decode functions.
 
-from reunion.primitives import (
+from rendez.vous.reunion.primitives import (
     x25519,
     ctidh1024,
     aead_encrypt,
@@ -31,7 +31,7 @@ from reunion.primitives import (
     Hash,
 )
 
-from reunion.constants import (
+from rendez.vous.reunion.constants import (
     DEFAULT_HKDF_SALT
 )
 
@@ -55,8 +55,8 @@ class T1(bytes):
     cryptable by a valid T3.
 
 
-    >>> from reunion.__vectors__ import ReunionSession_passphrase
-    >>> from reunion.__vectors__ import ReunionSession_A_msg
+    >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+    >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
     >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
     >>> T1 = ReunionSession_a.t1
     >>> alpha = T1.alpha
@@ -91,8 +91,8 @@ class T1(bytes):
 
         Returns *T1.LEN_ALPHA* byte slice of length 32.
 
-        >>> from reunion.__vectors__ import ReunionSession_passphrase
-        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
         >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
         >>> T1 = ReunionSession_a.t1
         >>> alpha = T1.alpha
@@ -111,8 +111,8 @@ class T1(bytes):
 
         Returns *T1.LEN_BETA* byte slice of length 128.
 
-        >>> from reunion.__vectors__ import ReunionSession_passphrase
-        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
         >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
         >>> T1 = ReunionSession_a.t1
         >>> beta = T1.beta
@@ -132,8 +132,8 @@ class T1(bytes):
 
         Returns *T1.LEN_GAMMA* byte slice of length 16.
 
-        >>> from reunion.__vectors__ import ReunionSession_passphrase
-        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
         >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
         >>> T1 = ReunionSession_a.t1
         >>> gamma = T1.gamma
@@ -158,8 +158,8 @@ class T1(bytes):
 
         Returns *T1.LEN_DELTA* byte slice of variable length.
 
-        >>> from reunion.__vectors__ import ReunionSession_passphrase
-        >>> from reunion.__vectors__ import ReunionSession_A_msg
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
         >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
         >>> T1 = ReunionSession_a.t1
         >>> delta = T1.delta
@@ -173,7 +173,7 @@ class T1(bytes):
         """
         Returns a *Hash* of itself as 32 bytes.
 
-        >>> from reunion.__vectors__ import t1_empty_id
+        >>> from rendez.vous.reunion.__vectors__ import t1_empty_id
         >>> t1 = T1()
         >>> t1_id = t1.id
         >>> t1_empty_id.hex() == t1_id.hex()
@@ -205,9 +205,9 @@ class ReunionSession(object):
     are implemented in the Peer object which ReunionSession instantiates for
     each new t1.
 
-    >>> from reunion.__vectors__ import ReunionSession_passphrase
-    >>> from reunion.__vectors__ import ReunionSession_A_msg
-    >>> from reunion.__vectors__ import ReunionSession_B_msg
+    >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+    >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
+    >>> from rendez.vous.reunion.__vectors__ import ReunionSession_B_msg
     >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
     >>> ReunionSession_b = ReunionSession.create(ReunionSession_passphrase, ReunionSession_B_msg)
     >>> A_t2 = ReunionSession_a.process_t1(ReunionSession_b.t1)
@@ -233,9 +233,9 @@ class ReunionSession(object):
         everything else in the ReunionSession and Peer classes (except "create"
         which calls this) can be sans IO.
 
-        >>> from reunion.__vectors__ import ReunionSession_passphrase
-        >>> from reunion.__vectors__ import ReunionSession_A_msg
-        >>> from reunion.session import ReunionSession
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
+        >>> from rendez.vous.reunion.session import ReunionSession
         >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
         >>> ReunionSession_a_keys = ReunionSession_a.keygen()
         >>> ReunionSession_a_keys.keys()
@@ -255,12 +255,12 @@ class ReunionSession(object):
         """
         This is the typical way to instantiate a ReunionSession object.
 
-        >>> from reunion.__vectors__ import ReunionSession_passphrase
-        >>> from reunion.__vectors__ import ReunionSession_A_msg
-        >>> from reunion.session import ReunionSession
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
+        >>> from rendez.vous.reunion.session import ReunionSession
         >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
         >>> type(ReunionSession_a)
-        <class 'reunion.session.ReunionSession'>
+        <class 'rendez.vous.reunion.session.ReunionSession'>
         """
         # XXX The above tests should construct a ReunionSession that sets all
         # seeds and verifies the values of the returned fields on the object.
@@ -343,9 +343,9 @@ class ReunionSession(object):
         """
         Process T1 message *t1* from respective peers.
 
-        >>> from reunion.__vectors__ import ReunionSession_passphrase
-        >>> from reunion.__vectors__ import ReunionSession_A_msg
-        >>> from reunion.__vectors__ import ReunionSession_B_msg
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_B_msg
         >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
         >>> ReunionSession_b = ReunionSession.create(ReunionSession_passphrase, ReunionSession_B_msg)
         >>> A_t2 = ReunionSession_a.process_t1(ReunionSession_b.t1)
@@ -372,9 +372,9 @@ class ReunionSession(object):
         """
         Process T2 message *t2* from respective peers keyed by *t1_id*.
 
-        >>> from reunion.__vectors__ import ReunionSession_passphrase
-        >>> from reunion.__vectors__ import ReunionSession_A_msg
-        >>> from reunion.__vectors__ import ReunionSession_B_msg
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_B_msg
         >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
         >>> ReunionSession_b = ReunionSession.create(ReunionSession_passphrase, ReunionSession_B_msg)
         >>> A_t2 = ReunionSession_a.process_t1(ReunionSession_b.t1)
@@ -399,9 +399,9 @@ class ReunionSession(object):
         successful rendezvous, the respective peer's message is returned as a
         bytes object or *None* is returned.
 
-        >>> from reunion.__vectors__ import ReunionSession_passphrase
-        >>> from reunion.__vectors__ import ReunionSession_A_msg
-        >>> from reunion.__vectors__ import ReunionSession_B_msg
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_passphrase
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_A_msg
+        >>> from rendez.vous.reunion.__vectors__ import ReunionSession_B_msg
         >>> ReunionSession_a = ReunionSession.create(ReunionSession_passphrase, ReunionSession_A_msg)
         >>> ReunionSession_b = ReunionSession.create(ReunionSession_passphrase, ReunionSession_B_msg)
         >>> A_t2 = ReunionSession_a.process_t1(ReunionSession_b.t1)

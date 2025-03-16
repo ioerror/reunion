@@ -58,7 +58,7 @@ True
 True
 """
 
-from reunion.constants import DEFAULT_ARGON_SALT, DEFAULT_HKDF_SALT
+from rendez.vous.reunion.constants import DEFAULT_ARGON_SALT, DEFAULT_HKDF_SALT
 
 argon2i_salt: bytes = DEFAULT_ARGON_SALT
 argon2i_password: bytes = bytes(b'REUNION is for rendezvous')
@@ -134,9 +134,9 @@ dsession_dh_seed_b: bytes = bytes.fromhex('79455c612276de0d2d511744936efc30c4cbb
 
 # To aid developers who do not have a highctidh seed keygen interface we
 # include the following vectors and document their generation
-# from reunion.__vectors__ import dsession_seed # bytes.fromhex('0123456789')
-# from reunion.primitives import Hash
-# from reunion.primitives import generate_ctidh_key_pair
+# from rendez.vous.reunion.__vectors__ import dsession_seed # bytes.fromhex('0123456789')
+# from rendez.vous.reunion.primitives import Hash
+# from rendez.vous.reunion.primitives import generate_ctidh_key_pair
 # ctidh_seed=bytes(Hash(dsession_seed + b'ctidh'))
 # pk, sk = generate_ctidh_key_pair(seed=ctidh_seed)
 # pk_bytes = bytes(pk)

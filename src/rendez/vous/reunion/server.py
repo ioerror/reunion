@@ -6,7 +6,7 @@ REUNION server
 # TODO: Tor stuff is not finished yet.
 # TODO: should probably persist messages to an on-disk thing to survive restarts
 
-from reunion.__version__ import __version__
+from rendez.vous.reunion.__version__ import __version__
 
 from typing import Set
 

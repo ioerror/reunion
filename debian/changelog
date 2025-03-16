@@ -1,11 +1,17 @@
-reunion (1.0.2-1) unstable; urgency=medium
+rendez (1.1.0-1) unstable; urgency=medium
+
+  * Update package name from reunion to rendez 
+
+ -- REUNION Authors <git@rendezvous.contact>  Sun, 16 Mar 2025 14:53:32 +0100
+
+rendez (1.0.2-1) unstable; urgency=medium
 
   * Update Debian packaging
   * Add man pages
 
  -- REUNION Authors <git@rendezvous.contact>  Thu, 13 Mar 2025 19:28:56 +0100
 
-reunion (1.0.1-1) unstable; urgency=low
+rendez (1.0.1-1) unstable; urgency=low
 
   * source package created
 
