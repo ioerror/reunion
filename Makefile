@@ -30,10 +30,11 @@ deb: ./dist/$(DEB_NAME)
 	sha256sum dist/$(DEB_NAME)
 
 pypi-check:
-	python3 -m twine check dist/*$(VERSION)*.orig.tar.gz
+	cp dist/*$(VERSION)*.orig.tar.gz dist/rendez-$(VERSION).tar.gz
+	python3 -m twine check dist/rendez-$(VERSION).tar.gz
 
 pypi-upload: pypi-check
-	python3 -m twine upload --repository pypi dist/*$(VERSION)*
+	python3 -m twine upload --repository pypi dist/rendez-$(VERSION).tar.gz
 
 clean:
 	-rm -rf build/ dist/ $(PKG_NAME).egg-info/
