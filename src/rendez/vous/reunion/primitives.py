@@ -1,13 +1,16 @@
 import struct
+from typing import Any, cast, Callable, Tuple, Optional
 from hashlib import blake2b as _blake2b
 from hashlib import shake_256 as _shake_256
-from hkdf import Hkdf as _Hkdf
-from highctidh import ctidh as _ctidh
-import monocypher
+from hkdf import Hkdf as _Hkdf # type: ignore
+from highctidh import ctidh as _ctidh # type: ignore
+import monocypher # type: ignore
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from rendez.vous.reunion.constants import DEFAULT_AEAD_NONCE, DEFAULT_ARGON_SALT
 from rendez.vous.reunion.constants import DEFAULT_HKDF_SALT, DEFAULT_CTIDH_SIZE
+
+from .types import HKDF
 
 ctidh1024 = _ctidh(DEFAULT_CTIDH_SIZE)
 
@@ -43,7 +46,7 @@ def argon2i(password: bytes, salt: bytes, _iterations: int = 3,
     >>> argon2i_hash == _argon2i_hash
     True
     """
-    return monocypher.argon2i_32(
+    return cast(bytes, monocypher.argon2i_32(
         nb_blocks=100000,
         nb_iterations=_iterations,
         password=password,
@@ -51,9 +54,9 @@ def argon2i(password: bytes, salt: bytes, _iterations: int = 3,
         key=None,
         ad=None,
         _wipe=_wipe,
-    )
+    ))
 
-def hkdf(key: bytes, salt: bytes, hash=_blake2b):
+def hkdf(key: bytes, salt: bytes, hash: Callable[..., object] =_blake2b) -> HKDF:
     """
     *hkdf* wraps a standard HKDF and uses *blake2b* by default.
 
@@ -63,7 +66,7 @@ def hkdf(key: bytes, salt: bytes, hash=_blake2b):
     >>> hkdf_pdk == _hkdf_pdk
     True
     """
-    return _Hkdf(salt=salt, input_key_material=key, hash=hash)
+    return cast(HKDF, _Hkdf(salt=salt, input_key_material=key, hash=hash))
 
 def x25519(sk: bytes, pk: bytes) -> bytes:
     """
@@ -82,7 +85,7 @@ def x25519(sk: bytes, pk: bytes) -> bytes:
     >>> shared_secret_a == shared_secret_b 
     True
     """
-    return monocypher.key_exchange(sk, pk)
+    return cast(bytes, monocypher.key_exchange(sk, pk))
 
 def aead_encrypt(key: bytes, plaintext: bytes, ad: bytes) -> bytes:
     """
@@ -96,10 +99,12 @@ def aead_encrypt(key: bytes, plaintext: bytes, ad: bytes) -> bytes:
     >>> aead_ct == _aead_ct
     True
     """
+    mac: bytes
+    ct: bytes
     mac, ct = monocypher.lock(key, DEFAULT_AEAD_NONCE, plaintext, associated_data=ad)
     return mac + ct
 
-def aead_decrypt(key: bytes, ciphertext: bytes, ad: bytes) -> bytes:
+def aead_decrypt(key: bytes, ciphertext: bytes, ad: bytes) -> Optional[bytes]:
     """
 
     *aead_decrypt* takes *key*, *ciphertext*, *ad* as bytes and returns
@@ -112,8 +117,10 @@ def aead_decrypt(key: bytes, ciphertext: bytes, ad: bytes) -> bytes:
     >>> aead_pt == _aead_pt
     True
     """
+    mac: bytes
+    ct: bytes
     mac, ct = ciphertext[:16], ciphertext[16:]
-    return monocypher.unlock(key, DEFAULT_AEAD_NONCE, mac, ct, associated_data=ad)
+    return cast(Optional[bytes], monocypher.unlock(key, DEFAULT_AEAD_NONCE, mac, ct, associated_data=ad))
 
 
 def unelligator(hidden: bytes) -> bytes:
@@ -140,9 +147,9 @@ def unelligator(hidden: bytes) -> bytes:
     >>> pk_25519_b == pk_b
     True
     """
-    return monocypher.elligator_map(hidden)
+    return cast(bytes, monocypher.elligator_map(hidden))
 
-def generate_hidden_key_pair(seed: bytes) -> bytes:
+def generate_hidden_key_pair(seed: bytes) -> Tuple[bytes, bytes]:
     """
     *generate_hidden_key_pair* takes a 32 byte object known as *seed* and
     returns a two-tuple consisting of a bytes object containing a x25519 public
@@ -157,9 +164,9 @@ def generate_hidden_key_pair(seed: bytes) -> bytes:
     >>> hidden_key_pair_sk_a == sk_25519_a
     True
     """
-    return monocypher.elligator_key_pair(seed)
+    return cast(Tuple[bytes, bytes], monocypher.elligator_key_pair(seed))
 
-def generate_ctidh_key_pair(seed: bytes) -> (object, object):
+def generate_ctidh_key_pair(seed: bytes) -> Tuple[object, object]:
     """
     *generate_hidden_key_pair* takes a 32 byte object known as *seed* and
     returns a two-tuple consisting of a bytes object containing a CTIDH public
@@ -183,7 +190,7 @@ def generate_ctidh_key_pair(seed: bytes) -> (object, object):
     return pk, sk
 
 
-def prp_encrypt(key: bytes, plaintext: bytes):
+def prp_encrypt(key: bytes, plaintext: bytes) -> bytes:
     """
     *prp_encrypt* takes *key* and *plaintext* and returns a bytes encoded
     ciphertext of length 32.  It is explictly not authenticated encryption by
@@ -201,13 +208,13 @@ def prp_encrypt(key: bytes, plaintext: bytes):
     """
     assert len(key) == 32, len(key)
     assert len(plaintext) == 32, len(plaintext)
-    cipher = Cipher(algorithms.AES(key), modes.ECB())
+    cipher: Cipher[Any] = Cipher(algorithms.AES(key), modes.ECB())
     encryptor = cipher.encryptor()
-    res = encryptor.update(plaintext) + encryptor.finalize()
+    res: bytes = encryptor.update(plaintext) + encryptor.finalize()
     assert len(res) == 32, len(res)
     return res
 
-def prp_decrypt(key: bytes, ciphertext: bytes):
+def prp_decrypt(key: bytes, ciphertext: bytes) -> bytes:
     """
     *prp_decrypt* takes *key* and *ciphertext* and returns a bytes encoded
     plaintext of length 32.  It is explictly not authenticated encryption by
@@ -228,11 +235,11 @@ def prp_decrypt(key: bytes, ciphertext: bytes):
     """
     assert len(ciphertext) == 32, len(ciphertext)
     assert len(key) == 32, len(key)
-    cipher = Cipher(algorithms.AES(key), modes.ECB())
+    cipher: Cipher[Any] = Cipher(algorithms.AES(key), modes.ECB())
     decryptor = cipher.decryptor()
     return decryptor.update(ciphertext) + decryptor.finalize()
 
-def highctidh_deterministic_rng(seed: bytes):
+def highctidh_deterministic_rng(seed: bytes) -> Callable[[memoryview, int], None]:
     """
     *highctidh_deterministic_rng* takes a *seed* of at least 32 bytes and
     returns a generator suitable for deterministic outputs.
@@ -260,8 +267,8 @@ def highctidh_deterministic_rng(seed: bytes):
     >>> highctidh_1024_priv_key = ctidh1024.generate_secret_key(rng=det_rng, context=highctidh_context)
     """
     assert len(seed) >= 32, "deterministic seed should be at least 256 bits"
-    context_state = {}
-    def _shake256_csprng(buf: memoryview, context: int):
+    context_state: dict[int, int] = {}
+    def _shake256_csprng(buf: memoryview, context: int) -> None:
         """
         *_shake256_csprng* takes a memoryview *buf* and an integer in *context* and returns
         a function suitable for use with the highctidh determininstic *rng*
@@ -288,4 +295,5 @@ def highctidh_deterministic_rng(seed: bytes):
             portable_uint32 = struct.unpack('<L',little_endian_out[i:i+4])[0]
             buf[i:i+4] = struct.pack(
                 '=L', portable_uint32)
+        return None
     return _shake256_csprng

@@ -25,7 +25,7 @@ import asyncio
 import datetime
 import json  # for the output
 import click # for the cli
-import socks
+import socks # type: ignore
 
 import logging
 logger = logging.getLogger('reunion-client')
@@ -111,10 +111,10 @@ async def store_result(result:bytes):
         dumpable = ['hex', result.hex()]
     print(json.dumps(dumpable))
 
-async def launch(passphrase, message, mode, verbose, duration:int,
+async def launch(passphrase, message, mode, verbose, duration: int,
                  mandatory_sleep=0.5, randomized_sleep=2):
     start_time = datetime.datetime.now()
-    duration = datetime.timedelta(seconds=duration)
+    duration_delta = datetime.timedelta(seconds=duration)
 
     if verbose:
         logger.setLevel(logging.DEBUG)
@@ -141,7 +141,7 @@ async def launch(passphrase, message, mode, verbose, duration:int,
     answered_t2s = set( )
     answered_t3s = set( )
 
-    while datetime.datetime.now() < start_time + duration:
+    while datetime.datetime.now() < start_time + duration_delta:
         t2s = []
         logger.debug('t1s, my_t1 is %s', my_t1[:8].hex())
         stat_current_t1s = len(answered_t1s)
