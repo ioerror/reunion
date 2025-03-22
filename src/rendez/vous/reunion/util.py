@@ -5,7 +5,9 @@ General utility functions
 True
 """
 
-def get_pairs(items):
+from typing import Any, Generator, Tuple
+
+def get_pairs(items: str) -> Generator[Tuple[Any, Any], None, None]:
     """
     Helper function to get all unique pairs from a list of items.
 

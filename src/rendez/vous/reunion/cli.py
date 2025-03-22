@@ -1,4 +1,5 @@
 import click
+from click import Context
 
 from rendez.vous.reunion.__version__ import __version__
 from rendez.vous.reunion.client import client
@@ -8,11 +9,11 @@ from rendez.vous.reunion.multicast import multicast
 @click.version_option(__version__)
 @click.group()
 @click.pass_context
-def cli(ctx):
+def cli(ctx: Context) -> None:
   """ rendez.vous.reunion is for rendezvous """
   pass
 
-def main():
+def main() -> None:
   """
   Entrypoint for *setup.py* *reunion* console script.
 

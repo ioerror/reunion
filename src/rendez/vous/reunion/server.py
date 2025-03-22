@@ -92,7 +92,7 @@ async def serve_t3():
 
 def setup_tor(bind_ip, private_onion_key=None):
     logger.debug('[*] CONNECTING TO TOR CONTROLLER')
-    from stem.control import Controller
+    from stem.control import Controller # type: ignore
     controller = Controller.from_port(address="127.0.0.1", port=9051)
     # after enabling ControlPort in torrc
     controller.authenticate(password="")

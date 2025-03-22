@@ -6,8 +6,9 @@ Algorithm 1 of the REUNION paper.
 """
 
 import os
-from typing import Dict, List
+from typing import Any, cast, Callable, Dict, List, Optional, Tuple, Union
 
+from .types import HKDF, KeygenDict
 
 # Curve25519 E/F p with Diﬀie-Hellman function DH(private, public), base point
 # P ∈ E(F p ), 32-byte EpochID, 32-byte SharedRandom, aead-enc(key, plaintext,
@@ -76,12 +77,12 @@ class T1(bytes):
     True
     """
 
-    LEN_ALPHA = 32
-    LEN_BETA = 128
-    LEN_GAMMA = 16
+    LEN_ALPHA: int = 32
+    LEN_BETA: int = 128
+    LEN_GAMMA: int = 16
 
     @property
-    def alpha(self):
+    def alpha(self) -> bytes:
         """
         α is an Elligator-encoded Curve25519 public key, encrypted by a PRP using
         a symmetric key derived as described in Step 8. The encryption and
@@ -104,7 +105,7 @@ class T1(bytes):
         return self[: self.LEN_ALPHA]
 
     @property
-    def beta(self):
+    def beta(self) -> bytes:
         """
         β is a CSIDH public key. CSIDH is provided by highctidh and CTIDH1024
         is used.
@@ -124,7 +125,7 @@ class T1(bytes):
         return self[self.LEN_ALPHA : self.LEN_ALPHA + self.LEN_BETA]
 
     @property
-    def gamma(self):
+    def gamma(self) -> bytes:
         """
         γ is the MAC of an AEAD encryption of an empty string using a random
         key which is revealed by the T2. AEAD is provided by monocypher
@@ -150,7 +151,7 @@ class T1(bytes):
         ]
 
     @property
-    def delta(self):
+    def delta(self) -> bytes:
         """
         δ is an AEAD ciphertext containing the message payload which is only de-
         cryptable by a valid T3. AEAD is provided by monocypher and
@@ -169,7 +170,7 @@ class T1(bytes):
         return self[self.LEN_ALPHA + self.LEN_BETA + self.LEN_GAMMA :]
 
     @property
-    def id(self):
+    def id(self) -> bytes:
         """
         Returns a *Hash* of itself as 32 bytes.
 
@@ -183,7 +184,7 @@ class T1(bytes):
         """
         return Hash(self)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         *__repr__* returns the type and six bytes of the id encoded as hex.
 
@@ -227,7 +228,7 @@ class ReunionSession(object):
     """
 
     @classmethod
-    def keygen(cls):
+    def keygen(cls) -> KeygenDict:
         """
         All of the RNG access is consolidated here in a class method, so that
         everything else in the ReunionSession and Peer classes (except "create"
@@ -251,7 +252,7 @@ class ReunionSession(object):
         )
 
     @classmethod
-    def create(cls, passphrase: bytes, payload: bytes, salt=DEFAULT_HKDF_SALT):
+    def create(cls, passphrase: bytes, payload: bytes, salt: bytes = DEFAULT_HKDF_SALT) -> Any:
         """
         This is the typical way to instantiate a ReunionSession object.
 
@@ -284,60 +285,66 @@ class ReunionSession(object):
         tweak: int,
     ):
         # dict of Peer objects, keyed by their t1 id
-        self.peers: Dict = {}
+        self.peers: Dict[bytes, Peer] = {}
 
         # list of payloads decrypted
-        self.results: List = []
+        self.results: List[bytes] = []
 
+        self.dh_epk: bytes 
+        dh_sk_bytes: bytes
         self.dh_epk, dh_sk_bytes = generate_hidden_key_pair(dh_seed)
 
         # Step2a: esk Aα ∈ Z, public key epk Aα = esk Aα · P ∈ E(Fp).
         self.dh_sk: bytes = dh_sk_bytes
 
         # Step2b: esk Aβ ∈ Z, public key epk Aβ = esk Aβ · P ∈ E(Fp)
-        self.csidh_pk, self.csidh_sk = generate_ctidh_key_pair(ctidh_seed)
+        self.csidh_pk: bytes
+        self.csidh_sk: bytes
+        self.csidh_pk, self.csidh_sk = cast(Tuple[bytes, bytes], generate_ctidh_key_pair(ctidh_seed))
+
 
         # Step 3: salt ← SharedRandom∥EpochID.
         # Setting the salt, or context, is the responsibility of the
         # application using this library. DEFAULT_SALT is 32 null bytes.
+        self.salt: bytes
         self.salt = salt
 
         # Step 4: pdk ← HKDF(salt, argon2id(salt, Q)).
-        kdf = hkdf(key=argon2i(passphrase, salt), salt=salt)
-        self.pdk = kdf.expand(b"", 32)
+        kdf: HKDF = hkdf(key=argon2i(passphrase, salt), salt=salt)
+        self.pdk: bytes = kdf.expand(b"", 32)
 
         # Step 5a: sk Aγ ← H(pdk, RNG(32), msg A )
-        self.sk_gamma = Hash(self.pdk + gamma_seed + payload)
+        self.sk_gamma: bytes = Hash(self.pdk + gamma_seed + payload)
 
         # Step 5b: sk Aδ ← H(pdk, RNG(32), msg A )
-        self.sk_delta = Hash(self.pdk + delta_seed + payload)
+        self.sk_delta: bytes = Hash(self.pdk + delta_seed + payload)
 
         # t1 beta is the unencrypted csidh pk
-        beta = self.csidh_pk
+        beta: bytes = self.csidh_pk
 
         # Step 6: T1Aγ ← aead-enc(sk Aγ ,“”, RS)
-        gamma = aead_encrypt(self.sk_gamma, b"", salt)
+        gamma: bytes = aead_encrypt(self.sk_gamma, b"", salt)
 
         # Step 7: T1Aδ ← aead-enc(sk Aδ , msg a , RS)
-        delta = aead_encrypt(self.sk_delta, payload, salt)
+        delta: bytes = aead_encrypt(self.sk_delta, payload, salt)
 
         # Step 8: pdkA ← H(pdk, epkAβ , T1Aγ , T1Bδ )
-        self.alpha_key = Hash(self.pdk + beta + gamma + delta)
+        self.alpha_key: bytes = Hash(self.pdk + beta + gamma + delta)
 
         # Step 9: T1Aα ← rijndael-enc(pdkA , epkAα)
-        alpha = prp_encrypt(self.alpha_key, self.dh_epk)
+        alpha: bytes = prp_encrypt(self.alpha_key, self.dh_epk)
 
         # Step 10: T1A ← T1 Aα ∥ epkAβ ∥ T1 Aγ ∥ T1 Aδ
-        self.t1 = T1(alpha + beta + gamma + delta)
+        self.t1: T1 = T1(alpha + beta + gamma + delta)
 
         # deviation from the paper - we generate dummys derministically using this Hkdf.
-        self.dummy_hkdf = hkdf(key=dummy_seed, salt=salt)
+        self.dummy_hkdf: HKDF = hkdf(key=dummy_seed, salt=salt)
         # FIXME: why dummy_hkdf? doesn't it run out after a small number of values?
         # was this just for testing purposes?
 
     # steps 11, 12, and 13 happen in the application using this library
 
-    def process_t1(self, t1: bytes):
+    def process_t1(self, t1: T1) -> bytes:
         # Step 14: for each new T1Bi do ▷ Phase 2: Process T1; transmit T2
         # implementation of steps 14 to 22 is in Peer.__init__
         """
@@ -366,7 +373,7 @@ class ReunionSession(object):
 
     # steps 23 and 24, transmit t1, is in the application
 
-    def process_t2(self, t1_id: bytes, t2: bytes):
+    def process_t2(self, t1_id: bytes, t2: bytes) -> Tuple[bytes, bool]:
         # Step 25: for each new T2Bi do ▷ Phase 3: Process T2, transmit T3
         # implementation of steps 25 to 33 is in Peer.process_t2
         """
@@ -392,7 +399,7 @@ class ReunionSession(object):
         else:
             return self.dummy_hkdf.expand(t1_id + t2, 32), True
 
-    def process_t3(self, t1_id: bytes, t3: bytes):
+    def process_t3(self, t1_id: bytes, t3: bytes) -> Optional[bytes]:
         # Step 36: for each new T3Bi do ▷ Phase 4: Process T3; decrypt δ
         """
         Process T3 message *t3* from respective peers keyed by *t1_id*. For
@@ -421,10 +428,12 @@ class ReunionSession(object):
         """
         if t1_id in self.peers:
             return self.peers[t1_id].process_t3(t3)
+        else:
+            return None
 
 
 class Peer(object):
-    def __init__(peer, t1, session):
+    def __init__(peer, t1: T1, session: ReunionSession):
         """
         This method implements the inside of the for loop in Phase 2 of
         Algorithm 1.
@@ -432,44 +441,44 @@ class Peer(object):
 
         # Step 14: for each new T1Bi do ▷ Phase 2: Process T1; transmit T2
 
-        peer.t1 = t1
-        peer.session = session
+        peer.t1: T1 = t1
+        peer.session: ReunionSession = session
 
         # Step 15: pdkBi ← H(pdk, T1Biβ, T1Biγ, T1Biδ)
-        peer.alpha_key = Hash(session.pdk + t1.beta + t1.gamma + t1.delta)
+        peer.alpha_key: bytes = Hash(session.pdk + t1.beta + t1.gamma + t1.delta)
 
         # Step 16: epkBiα ← unelligator(rijndael-dec(pdkBi , T1Biα )).
         peer.dh_pk: bytes = unelligator(prp_decrypt(peer.alpha_key, t1.alpha))
 
         # Step 17: epkBiβ ← T1Biβ
-        peer.csidh_pk = ctidh1024.public_key_from_bytes(t1.beta)
+        peer.csidh_pk: bytes = ctidh1024.public_key_from_bytes(t1.beta)
 
         # Step 18: dh1ssi ← H(DH(eskAα , epkBiα))
-        peer.dh_ss = x25519(session.dh_sk, peer.dh_pk)
+        peer.dh_ss: bytes = x25519(session.dh_sk, peer.dh_pk)
 
         # Step 19: dh2ssi ← H(DH(eskAβ , epkBiβ)).
-        peer.csidh_ss = ctidh1024.dh(
+        peer.csidh_ss: bytes = ctidh1024.dh(
             session.csidh_sk, peer.csidh_pk
         )  # note that this can throw exceptions, see app/reunion-client.py:process_t1(T1(t1))
 
         # Step 20: T2kitx ← H(pdkA, pdkBi, dh1ssi, dh2ssi)
-        peer.t2key_tx = Hash(
+        peer.t2key_tx: bytes = Hash(
             session.alpha_key + peer.alpha_key + peer.dh_ss + peer.csidh_ss
         )
 
         # Step 21: T2kirx ← H(pdkBi, pdkA, dh1ssi, dh2ssi)
-        peer.t2key_rx = Hash(
+        peer.t2key_rx: bytes = Hash(
             peer.alpha_key + session.alpha_key + peer.dh_ss + peer.csidh_ss
         )
 
         # Step 22: T2Ai ← rijndael-enc(T2kitx, skAγ)
-        peer.t2_tx = prp_encrypt(peer.t2key_tx, session.sk_gamma)
-        peer.t2_rx = None
-        peer.payload = None
+        peer.t2_tx: bytes = prp_encrypt(peer.t2key_tx, session.sk_gamma)
+        peer.t2_rx: Optional[bytes] = None
+        peer.payload: Optional[bytes] = None
 
         # Step 23 and 24, transmit, is implemented in an application using this library
 
-    def process_t2(peer, t2):
+    def process_t2(peer, t2: bytes) -> Tuple[bytes, bool]:
         """
         This method implements the inside of the for loop in Phase 3 of
         Algorithm 1. It returns a 2-tuple of (t3, is_dummy).
@@ -478,10 +487,10 @@ class Peer(object):
         # Step 25: for each new T2Bi do ▷ Phase 3: Process T2, transmit T3
 
         # Step 26: skBiγ ← rijndael-dec(T2kirx, T2Bi)
-        sk_gamma = prp_decrypt(peer.t2key_rx, t2)
+        sk_gamma: bytes = prp_decrypt(peer.t2key_rx, t2)
 
         # Step 27: if “” = aead-dec(sk B i γ , T 1 B i γ , RS) then
-        aead_res = aead_decrypt(sk_gamma, peer.t1.gamma, peer.session.salt)
+        aead_res: Optional[bytes] = aead_decrypt(sk_gamma, peer.t1.gamma, peer.session.salt)
 
         if aead_res is not None:
             assert aead_res == b"", aead_res
@@ -489,10 +498,10 @@ class Peer(object):
             peer.t2_rx = t2
 
             # Step 28: T3kitx ← H(T2kitx, T2Ai , T2Bi).
-            t3key_tx = Hash(peer.t2key_tx + peer.t2_tx + t2)
+            t3key_tx: bytes = Hash(peer.t2key_tx + peer.t2_tx + t2)
 
             # Step 29: T3kirx ← H(T2kirx, T2Bi, T2Ai)
-            peer.t3_key_rx = Hash(peer.t2key_rx + peer.t2_rx + peer.t2_tx)
+            peer.t3_key_rx: bytes = Hash(peer.t2key_rx + peer.t2_rx + peer.t2_tx)
 
             # Step 30: T3Ai ← rijndael-enc(T3kitx, skAδ)
             return prp_encrypt(t3key_tx, peer.session.sk_delta), False
@@ -502,7 +511,7 @@ class Peer(object):
             # Step 32: T3Ai ← H(RNG(32))
             return peer.session.dummy_hkdf.expand(peer.t1.id + t2, 32), True
 
-    def process_t3(peer, t3: bytes):
+    def process_t3(peer, t3: bytes) -> Optional[bytes]:
         """
         This method implements the inside of the for loop in Phase 4 of
         Algorithm 1.
@@ -519,16 +528,16 @@ class Peer(object):
             # t1. As it is now, if we receive their t3 before their t2 we will
             # never decrypt the t1 delta payload.
             return None
+        else:
+            # Step 37: skBiδ ← rijndael-dec(T3kirx, T3Bi).
+            sk_delta: bytes = prp_decrypt(peer.t3_key_rx, t3)
 
-        # Step 37: skBiδ ← rijndael-dec(T3kirx, T3Bi).
-        sk_delta = prp_decrypt(peer.t3_key_rx, t3)
-
-        # Step 38: if msgBi ← aead-dec(skBiδ, T1Biδ, RS) then
-        peer.payload = aead_decrypt(sk_delta, peer.t1.delta, peer.session.salt)
-        if peer.payload is not None:
-            # Step 39: add to results
-            peer.session.results.append(peer.payload)
-        return peer.payload
+            # Step 38: if msgBi ← aead-dec(skBiδ, T1Biδ, RS) then
+            peer.payload = aead_decrypt(sk_delta, peer.t1.delta, peer.session.salt)
+            if peer.payload is not None:
+                # Step 39: add to results
+                peer.session.results.append(peer.payload)
+            return peer.payload
 
 if '__main__' == __name__:
     import doctest
